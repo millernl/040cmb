@@ -1,0 +1,7 @@
+numpy>=2
+opencv-python-headless
+skia-python          # needs libEGL (apt: libegl1)
+scipy
+soundfile
+pillow
+imageio-ffmpeg       # fallback ffmpeg; set AFTERFILM_FFMPEG to a full build for best results

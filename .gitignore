@@ -1,0 +1,13 @@
+# the repo is public: footage, photos, music and renders never go in git
+footage/
+music/
+renders/
+work/
+*.mp4
+*.mov
+*.m4a
+*.mp3
+*.wav
+*.jpg
+*.png
+__pycache__/
