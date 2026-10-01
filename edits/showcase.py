@@ -1,22 +1,24 @@
-"""040COMBAT, Deurne — a 26-second 9:16 showcase.
+"""040COMBAT, Deurne — a 24-second 9:16 showcase.
 
-Two looks only, like the District98 film's Iron and Ember: IRON, a hard panchromatic black &
-white on off-white paper, and GOLD, the same tones printed through the logo's gold. Cut to
-Future & Metro Boomin's "Everyday Hustle" (music/, not in git; 119.67 BPM, bar = 2.006 s).
+One look: a hard panchromatic black & white in which only what is really gold or yellow — the
+gold gloves, the yellow shin guards, the stars on the wall sign — prints in the logo's gold.
+At the drop the highlights gild and glow. Cut to Future & Metro Boomin's "Everyday Hustle"
+(music/, not in git; 119.67 BPM, bar = 2.006 s).
 
-  0.0–2.0    build · out of black the gym's lights strike on; feet, gold gloves, a face, the
-             wall logo strobe in; three staccato punch-ins on Milosz
+  0.0–2.0    the hook · nine impacts cut on the eighth notes, each on its own sound: a
+             takedown, ground and pound in gold gloves, her kick, a scramble, a punch, a face,
+             an inversion, Milosz, the wall logo · three staccato punch-ins on Milosz
   2.0–8.0    intro · the kick lands on the downbeat in slow motion, trailing light · a whip
              into a body-lock throw · her combination · pads with the coach into a double-leg
              · a jump-cut exchange under the wall logo
   8.0–9.0    the music holds its breath; his punch freezes and the frame closes to a slit
-  9.0–15.0   the drop bursts it open in gold · Milosz's hand raised, a whip to Imre, the two
+  9.0–15.0   the drop bursts it open, gilded · Milosz's hand raised, a whip to Imre, the two
              slam together above and below · five hits: gold gloves, her knee, a kid on the pads
              in light trails, the full room trading, a roll to the back
-  15.0–21.1  the breakdown · his laugh after the round, the coach on the mat, the team photo
-             face by face, then the whole room lit out of silhouette on the 808
-  21.1–26.2  the beat returns · a switch kick, a scramble, a takedown under the logo, the
-             uppercut that freezes into 040COMBAT, then DEURNE, on the beats
+  15.0–19.1  the breakdown · his laugh after the round, the packed class in slow motion, the
+             whole room lit out of silhouette on the 808
+  19.1–24.2  the beat returns · three pad combinations under the wall sign, each punched in
+             closer, and the uppercut that freezes into 040COMBAT, then DEURNE, on the beats
 
 Footage and photos are read from footage/ (the draft release 'footage'; never in git).
 
@@ -59,16 +61,16 @@ V_KICK = BAR                                 # 2.006: one bar of build, then the
 V_PAUSE = V_KICK + 3 * BAR                   # 8.023: the intro stops on a bar line
 V_DROP = V_PAUSE + 2 * BEAT                  # 9.026: two beats of held breath
 V_BREAK = V_DROP + 3 * BAR                   # 15.043: into the breakdown
-V_PRE = V_BREAK + 2 * BAR                    # 19.055: the breakdown's last bar — an 808, then air
-V_RETURN = V_PRE + BAR                       # 21.060: the beat returns
-V_CARD = V_RETURN + BAR                      # 23.066: the end card
-V_LAST = V_CARD + BAR                        # 25.072: the last downbeat
+V_PRE = V_BREAK + BAR                        # 17.049: the breakdown's last bar — an 808, then air
+V_RETURN = V_PRE + BAR                       # 19.055: the beat returns
+V_CARD = V_RETURN + BAR                      # 21.060: the end card
+V_LAST = V_CARD + BAR                        # 23.066: the last downbeat
 DURATION = V_LAST + 1.15
 
 # music: (video start, song start, song end, gain dB)
 MUSIC_PLAN = [(0.0, SB(7), SB(11), 3.0),
               (V_DROP, SB(32), SB(35), 0.0),
-              (V_BREAK, SB(52), SB(54), 2.0),
+              (V_BREAK, SB(52), SB(53), 2.0),
               (V_PRE, SB(59), SB(62) + 0.9, 1.0)]
 
 
@@ -192,23 +194,25 @@ def photo(name, zoom=(1.0, 1.0), center=(0.5, 0.5), note="", decode_zoom=None, z
     return c.setup(zsteps=zsteps, zfn=zfn, expo_fn=expo_fn)
 
 
-# ── the looks ────────────────────────────────────────────────────────────────
+# ── the look ─────────────────────────────────────────────────────────────────
 BW_MIX = (0.50, 0.40, 0.10)                  # orange-filter panchromatic: skin glows, mats sink
-PAPER = np.array([1.0, 0.982, 0.948], np.float32)          # IRON's whites: off-white, never blue
-# GOLD: black & white tone → the logo's gold, from near-black through bronze to warm paper
-_GOLD_L = np.array([0, .08, .18, .30, .42, .54, .64, .74, .84, .93, 1.0], np.float32)
-_GOLD_RGB = np.array([[4, 4, 3], [16, 12, 7], [40, 29, 14], [78, 57, 26], [120, 90, 42], [160, 124, 62],
-                      [192, 155, 83], [214, 182, 112], [232, 208, 150], [243, 229, 192], [250, 244, 230]], np.float32) / 255
+PAPER = np.array([1.0, 0.982, 0.948], np.float32)          # whites: off-white paper, never blue
+GRAPHITE = np.array([0.975, 0.985, 1.0], np.float32)       # shadows: neutral graphite, never brown
+METAL = np.array([1.16, 0.90, 0.50], np.float32)
+METAL = METAL / float(METAL @ fx.LUMA)                     # the logo's gold, at unit luminance
+GLOW = np.array([1.0, 0.76, 0.40], np.float32)
 
 
 class CombatLook(fx.Look):
-    """IRON and GOLD. Each shot is matched (black point, white point, exposure) before the
-    tone curve, so phone footage from different rooms prints the same."""
+    """Black & white with gold accents. Each shot is matched first (black point, white point,
+    exposure), so phone footage from different rooms prints the same. Only real gold and
+    yellow (hue 36–64°, saturated) keeps colour, printed in the logo's gold; skin never does.
+    `gold` (0–1) gilds the highlights and lets the light glow — the drop and the photos."""
 
     def __init__(self, w, h):
         super().__init__(w, h, accent=GOLD)
 
-    def grade(self, img, match=None, gold=0.0, exposure=0.0, contrast=0.42, **_):
+    def grade(self, img, match=None, gold=0.0, exposure=0.0, contrast=0.46, accents=1.0, **_):
         x = np.clip(img, 0, 1).astype(np.float32)
         e = exposure
         if match:
@@ -219,11 +223,25 @@ class CombatLook(fx.Look):
             v = np.clip(v * (2.0 ** e), 0, 1)
         v = fx.filmic(v)
         v = np.clip(v + contrast * (v * v * (3 - 2 * v) - v), 0, 1)
-        out = 0.008 + v[..., None] * PAPER * 0.992
-        if gold > 0:
-            g = np.stack([np.interp(v, _GOLD_L, _GOLD_RGB[:, c]) for c in range(3)], -1).astype(np.float32)
-            out = out * (1 - gold) + g * gold
-        return out.astype(np.float32)
+        vv = v[..., None]
+        out = vv * (GRAPHITE + (PAPER - GRAPHITE) * vv)
+        warm = fx.smoothstep(0.55, 1.0, vv) * (0.10 + 0.30 * gold)
+        out = out * (1 - warm) + np.clip(vv * METAL, 0, 1) * warm
+        if accents:
+            hsv = cv2.cvtColor(x, cv2.COLOR_RGB2HSV)
+            m = (fx.smoothstep(34, 40, hsv[..., 0]) * (1 - fx.smoothstep(62, 70, hsv[..., 0]))
+                 * fx.smoothstep(0.36, 0.55, hsv[..., 1]) * fx.smoothstep(0.2, 0.36, hsv[..., 2]))
+            m = cv2.GaussianBlur(m.astype(np.float32), (0, 0), 1.0)[..., None] * accents
+            out = out * (1 - m) + np.clip((0.22 + 0.95 * vv) * METAL * 0.95, 0, 1) * m
+        amt = 0.12 + 0.3 * gold
+        hot = np.clip((v - 0.62) / 0.38, 0, 1)
+        h, w = v.shape
+        small = cv2.resize(hot, (max(w // 4, 1), max(h // 4, 1)), interpolation=cv2.INTER_AREA)
+        k = min(w, h) / 1080 / 4
+        g = cv2.GaussianBlur(small, (0, 0), 20 * k + 1) * 0.7 + cv2.GaussianBlur(small, (0, 0), 64 * k + 1) * 0.6
+        g = cv2.resize(g, (w, h), interpolation=cv2.INTER_LINEAR)[..., None]
+        out = 1 - (1 - out) * (1 - np.clip(g * amt, 0, 1) * GLOW)
+        return (0.006 + out * 0.994).astype(np.float32)
 
 
 # ── transitions of our own ───────────────────────────────────────────────────
@@ -267,23 +285,30 @@ def ease_snap(lt, amt, t=0.35, drift=0.03):
 
 
 # ── the edit ─────────────────────────────────────────────────────────────────
+E8 = BEAT / 2                                 # an eighth note
+# (start, length, clip, source time of the impact, zoom, centre, note) — every cut lands on a hit
+HOOK = [(0 * E8, E8, "wall.drill.near.the.end.mp4", 61.36, 1.10, (0.5, 0.50), "a takedown under the logo"),
+        (1 * E8, E8, "action.mp4", 6.07, 1.25, (0.45, 0.45), "ground and pound, gold gloves"),
+        (2 * E8, 0.75 * E8, "alternative.shot.mp4", 8.30, 1.15, (0.5, 0.5), "her body kick"),
+        (2.75 * E8, 0.75 * E8, "Milosz.Bilal.mp4", 37.00, 1.0, (0.5, 0.5), "a cross on the pads, the room watching"),
+        (3.5 * E8, 0.75 * E8, "kickboxing.drills.mp4", 9.55, 1.12, (0.5, 0.45), "a jab into the pads"),
+        (4.25 * E8, 0.5 * E8, "Dilbrien.x.Milosz.scramble.mp4", 40.24, 2.8, (0.56, 0.16), "a face"),
+        (4.75 * E8, 0.5 * E8, "Michael.x.Dilbrien.scramble.mp4", 56.91, 1.3, (0.5, 0.5), "an inversion"),
+        (5.25 * E8, 0.5 * E8, "KB3.mp4", 8.62, 1.3, (0.45, 0.45), "gold gloves"),
+        (5.75 * E8, 0.5 * E8, "Milosz.Bilal.mp4", 0.46, 3.2, (0.45, 0.075), "the wall sign")]
+
+
 def build(w=1080, h=1920):
     look = CombatLook(w, h)
     tl = Timeline(w, h, FPS, DURATION, look)
     S = tl.add
     neg, flashes = set(), []                 # single negative frames, gold exposure flashes
 
-    # 0 · build: the lights strike on, then the close-ups strobe in
-    tl.add(Shot(0.1, 0.9, clip("boxing.instructies.mp4", 0.15, speed=0.5, zoom=(1.18, 1.26), center=(0.5, 0.42),
-                               expo_fn=strike([-8, -8, -1.2, -8, -8, -0.4, -3, -8, 0.2, -1.8, -0.6, -2.5, 0, 0, -0.8, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-                               note="the gym's lights strike on")))
-    ecus = [(1.00, 4, "Dilbrien.x.Milosz.scramble.mp4", 16.40, 2.6, (0.50, 0.78), "feet on the mat"),
-            (1.17, 4, "KB3.mp4", 8.62, 1.75, (0.45, 0.40), "gold gloves"),
-            (1.33, 3, "Dilbrien.x.Milosz.scramble.mp4", 40.20, 3.0, (0.56, 0.16), "a face"),
-            (1.47, 3, "Milosz.Bilal.mp4", 0.40, 3.2, (0.45, 0.075), "the wall logo")]
-    for t0, n, name, s0, z, c, note in ecus:
-        S(Shot(t0, n / FPS, clip(name, s0, zoom=(z, z * 1.03), center=c, note=note)))
-    flashes.append((1.48, 0.18, 0.07))
+    # 0 · the hook: nine impacts on the eighth notes, accelerating, each on its own sound
+    E = BEAT / 2
+    for k, (t0, d, name, s_imp, z, c, note) in enumerate(HOOK):
+        S(Shot(t0, d, clip(name, s_imp - 0.06, zoom=(z, z * 1.04), center=c, note=note), punch=0.05 if k < 5 else 0.0))
+    neg.update({F(HOOK[4][0]) + 1})
     # Milosz: three staccato punch-ins, then the kick lands wide on the downbeat in slow motion
     t = 1.60
     imp = V_KICK - t
@@ -347,35 +372,27 @@ def build(w=1080, h=1920):
     S(Shot(t, V_BREAK - t, clip("RNC.mp4", 2.55, zoom=(1.08, 1.14), center=(0.5, 0.45), gold=1.0,
                                  note="a roll to the back"), punch=0.04))
 
-    # 4 · the breakdown: the people, in iron
+    # 4 · the breakdown: the people
     t = V_BREAK
-    S(Shot(t, 2 * BEAT, clip("Milosz.Bilal.KB2.mp4", 19.95, speed=0.8, zoom=(1.45, 1.5), center=(0.40, 0.36), contrast=0.34,
+    S(Shot(t, 2 * BEAT, clip("Milosz.Bilal.KB2.mp4", 19.95, speed=0.8, zoom=(1.45, 1.5), center=(0.40, 0.36), contrast=0.36,
                               note="his laugh after the round")))
     t = vb(V_BREAK, 2)
-    S(Shot(t, 2 * BEAT, clip("uitleg.mma.mp4", 4.45, zsteps=[(0, 1.5, 0.48, 0.38, 0.03), (BEAT, 1.85, 0.44, 0.35, 0.03)],
-                              contrast=0.34, note="the coach on the mat with them")))
-    t = vb(V_BREAK, 4)                                                   # 17.049: the team, face by face
-    for k, (z, cx, cy, note) in enumerate([(2.7, 0.30, 0.63, "faces, front row"), (2.7, 0.72, 0.66, "faces, front row right"),
-                                           (2.3, 0.52, 0.40, "faces, back row"), (1.35, 0.50, 0.50, "the team")]):
-        S(Shot(vb(t, k), BEAT, photo("Of.voor.community.jpg", zsteps=[(0, z, cx, cy, 0.05)], contrast=0.34, note=note)))
+    S(Shot(t, 2 * BEAT, clip("boxing.instructies.mp4", 28.45, speed=0.5, zoom=(1.08, 1.0), center=(0.5, 0.5), contrast=0.36,
+                              note="the packed class, 120 fps slowed to half")))
     # the whole room, lit out of silhouette on the 808
     S(Shot(V_PRE, V_RETURN - V_PRE, photo("Of.voor.communityy.jpg", zsteps=[(0, 1.05, 0.5, 0.46, 0.035)], decode_zoom=1.12,
-                                          contrast=0.34, expo_fn=strike([-7, -7, -2.0, -7, -0.6, -3.5, -0.3, -1.2, 0, 0, -0.5]),
+                                          contrast=0.36, expo_fn=strike([-7, -7, -2.0, -7, -0.6, -3.5, -0.3, -1.2, 0, 0, -0.5]),
                                           note="the whole room under the logo")))
 
-    # 5 · the beat returns: four hits, the last one under the logo
-    t = V_RETURN
-    S(Shot(t, BEAT, clip("kickboxing.drills.mp4", 31.35, zoom=(1.08, 1.12), gold=1.0, note="a switch kick"),
-           trans=("strobe", 0.13)))
-    flashes.append((V_RETURN, 0.5, 0.15))
-    t = vb(V_RETURN, 1)
-    S(Shot(t, BEAT, clip("Dilbrien.x.Milosz.scramble.mp4", 22.45, zoom=(1.45, 1.5), center=(0.42, 0.40),
-                          note="a scramble, legs flying")))
-    t = vb(V_RETURN, 2)
-    S(Shot(t, BEAT, clip("wall.drill.near.the.end.mp4", 61.12, zoom=(1.0, 1.04), gold=1.0, note="a takedown under the logo"),
-           shake=0.4))
+    # 5 · the beat returns: three pad combinations under the wall sign, each punched in closer,
+    #     their hits on the eighth notes; then the uppercut
+    for k, (s_hit, z, note) in enumerate([(12.16, 1.0, "a combination on the pads"), (15.04, 1.16, "…closer"),
+                                          (18.07, 1.34, "…closer")]):
+        t = vb(V_RETURN, k)
+        S(Shot(t, BEAT, clip("wall.drill.near.the.end.mp4", s_hit - 0.03, zoom=(z, z * 1.02), center=(0.5, 0.46), gold=0.4,
+                              note=note), punch=0.03))
     t = vb(V_RETURN, 3)
-    card = EndCard(w, h, clip("wall.drill.near.the.end.mp4", 8.98 - (V_CARD - t), note="an uppercut under the logo → the end card"))
+    card = EndCard(w, h, clip("wall.drill.near.the.end.mp4", 8.98 - (V_CARD - t), note="the uppercut → the end card"))
     S(Shot(t, DURATION - t, render=card.picture, clips=[card.clip]))
     tl.overlays.append(Overlay(V_CARD, DURATION, card.draw, "post"))
     neg.update({F(V_CARD) + 1, F(card.T1)})
@@ -495,8 +512,13 @@ class EndCard:
 # ── sound ────────────────────────────────────────────────────────────────────
 def sounds():
     """Real sound from the floor: (video time, file, src t0, src t1, dB)."""
-    return [
-        (0.1, "boxing.instructies.mp4", 0.15, 1.0, -16),                     # the room, under the lights
+    hook = [(HOOK[0][0], "wall.drill.near.the.end.mp4", 61.36, 61.66, -5),
+            (HOOK[1][0], "action.mp4", 6.03, 6.25, -4),
+            (HOOK[2][0], "alternative.shot.mp4", 8.26, 8.45, -5),
+            (HOOK[3][0], "Milosz.Bilal.mp4", 36.90, 37.15, -5)]
+    combos = [(vb(V_RETURN, k), "wall.drill.near.the.end.mp4", s_hit - 0.03, s_hit + 0.45, -4)
+              for k, s_hit in enumerate([12.16, 15.04, 18.07])]
+    return hook + [
         (V_KICK - 0.03, "kickboxing.drills.mp4", 21.36, 21.75, -2),         # the kick lands
         (vb(V_KICK, 2) + (20.80 - 19.95), "Dilbrien.x.Milosz.scramble.mp4", 20.80, 21.15, -8),
         (vb(V_KICK, 4) + (14.40 - 13.85), "alternative.shot.mp4", 14.40, 14.98, -5),
@@ -507,8 +529,7 @@ def sounds():
         (vb(V_DROP, 7) + (4.28 - 4.06), "good.kickboxing.clip.mp4", 4.28, 4.55, -6),
         (vb(V_DROP, 10) + (36.90 - 36.67), "Milosz.Bilal.mp4", 36.90, 37.30, -6),
         (V_BREAK + 0.06, "Milosz.Bilal.KB2.mp4", 20.0, 20.75, -5),           # the laugh
-        (V_RETURN + (31.62 - 31.35), "kickboxing.drills.mp4", 31.62, 31.95, -5),
-        (vb(V_RETURN, 2) + (61.40 - 61.12), "wall.drill.near.the.end.mp4", 61.40, 61.75, -6),
+    ] + combos + [
         (V_CARD - 0.03, "wall.drill.near.the.end.mp4", 8.95, 9.40, -1),      # the uppercut
     ]
 
