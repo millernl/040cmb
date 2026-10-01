@@ -6,33 +6,35 @@ Deurne. It is cut from the gym's own training footage and competition photos onl
 ## The edit (`edits/showcase.py`)
 
 Cut to Future & Metro Boomin's *Everyday Hustle* (`music/`, not in git). The track runs at
-119.67 BPM, so a bar is 2.006 s; the grid is fitted on its kick pattern. The intro builds
-under the opening and pauses on a freeze. The drop lands on the first competition photo,
-the breakdown carries the people, and the beat returns for the last burst and the end card.
-Every splice is on a bar line.
+119.67 BPM, so a bar is 2.006 s; the grid is fitted on its kick pattern. There is one bar
+of build, then the intro under the action, a held breath on a freeze, the drop for the
+achievements and a burst, the breakdown for the people, and the beat back for the last
+hits and the end card. Every splice is on a bar line.
 
 | time | music | picture |
 |---|---|---|
-| 0–8.5 | intro (song bars 8–12) | Milosz's high kick lands on the first downbeat · a body-lock lift and drop · a women's round, her body kick on the beat · pads with the coach into a double-leg (the lift in slow motion) · the packed class shadowboxing (120 fps, half speed) · Milosz and Bilal trading under the wall logo |
-| 8.5–9.5 | held breath: the intro's last instant rings out in a hall | his punch freezes in black & white |
-| 9.5–15.5 | the drop (bars 32–35) | Milosz's hand raised · Imre's arms up · the two together, above and below, a gold hairline between · back into motion with a kid on the pads with his coach and a round in the full room |
-| 15.5–21.6 | the breakdown (bars 52–54, 59) | his laugh after the round · a coach on the mat with a pair · the team photo from the faces out, then the whole room under the logo on the 808 |
-| 21.6–26.7 | the beat returns (bars 60–62) | four hits: her combination, a scramble, Milosz's jab with the room watching, a pad strike under the wall logo that freezes, goes black & white and becomes **040COMBAT / DEURNE** |
+| 0–2 | build (bar 7) and the kick's own impact, reversed through a hall | out of black the gym's lights strike on · feet, gold gloves, a face, the wall logo strobe in · three staccato punch-ins on Milosz |
+| 2–8 | intro (bars 8–11) | the kick lands on the downbeat in slow motion, trailing light · a whip into a body-lock throw · her combination · pads with the coach into a double-leg · a jump-cut exchange under the wall logo |
+| 8–9 | held breath: the intro's last instant rings out in a hall | his punch freezes on a negative frame and the picture closes to a slit |
+| 9–15 | the drop (bars 32–35) | the drop bursts the slit open in gold · Milosz's hand raised, a whip up to Imre, the two slam together above and below · five hits: gold gloves, her knee, a kid on the pads in light trails, the full room trading, a roll to the back |
+| 15–21 | the breakdown (bars 52–53, 59) | his laugh after the round · the coach on the mat · the team photo face by face · the whole room lit out of silhouette on the 808 |
+| 21–26 | the beat returns (bars 60–62) | a switch kick, a scramble, a takedown under the logo · the uppercut freezes, 040COMBAT slams in on the next beat, DEURNE on the one after |
 
-Real sound from the floor cuts through the music in a few places: the kick, the
-takedown, her kick, the pads, the punch the music stops on, the laugh, and the last
-strike.
+Real sound from the floor cuts through the music: the kick, the throw, her punches, the
+pads, the double-leg, the punch the music stops on, the photos slamming together, the
+knee, the laugh, the last three hits.
 
-**Grade.** Each shot is matched first. The white balance is neutralised on near-neutral
-midtones (walls and mats), then the black and white points and the exposure are set to a
-common level (`measure`). One gentle look goes on top: filmic contrast, natural skin,
-deep neutral blacks, and a touch of the logo's gold in the highlights. The film pass is
-light: a little halation and bloom, and fine grain. The photos keep their own grade.
+**Two looks**, like the District98 film's Iron and Ember:
+- **IRON** is a hard panchromatic black and white printed on off-white paper. It covers the build, the intro, the people and the end card.
+- **GOLD** prints the same tones through the logo's gold (#C09B53): near-black, through bronze, to warm paper. It carries the drop, the photos and the hits.
 
-**Identity.** The colours are black, gold (#C09B53, measured from the logo) and off-white.
-The end card is set in Barlow Condensed (`brand/fonts`, OFL). The logo itself is never
-pasted on: it appears as the real sign on the gym wall, in black and white behind the
-type.
+Each shot is first matched for black point, white point and exposure, so phone footage
+from different rooms prints the same. On top sit fine grain, halation, gate weave, gold
+exposure flashes on the hits and single negative frames.
+
+**Identity.** The logo is never pasted on: it appears as the real sign on the gym wall.
+It flashes in the build, sits over the exchange, and stands in black and white behind the
+type at the end. The type is Barlow Condensed ExtraBold (`brand/fonts`, OFL).
 
 ```bash
 python edits/showcase.py                                  # renders/040COMBAT_showcase_9x16.mp4 (+ .wav)
