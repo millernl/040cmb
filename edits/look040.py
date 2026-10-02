@@ -39,6 +39,7 @@ LOOK = dict(
     mist=0.22,             # highlight diffusion
     expo=-0.12,            # overall exposure trim (stops)
     white=1.0,             # the brightest the print gets (below 1: highlights stay off pure white)
+    lift=0.0,              # shadow lift (display units added at a third of the range; black stays put)
 )
 
 
@@ -107,6 +108,9 @@ def grade(img, match=None, alpha=None, exposure=0.0, look=None, **over):
     disp = fx.filmic(np.clip(lin ** (1 / 2.2), 0, 1))
     c = L["contrast"]
     disp = disp + c * (disp * disp * (3 - 2 * disp) - disp)
+    if L["lift"]:
+        # lift the darks without touching black or the highlights: most at a third of the range
+        disp = disp + L["lift"] * 6.75 * disp * (1 - disp) ** 2
     Y = (disp @ LUMA)[..., None]
     sh = (1 - fx.smoothstep(0.05, 0.5, Y)) * fx.smoothstep(0.0, 0.12, Y)
     hi = fx.smoothstep(0.45, 1.0, Y)
