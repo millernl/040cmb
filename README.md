@@ -1,6 +1,6 @@
 # 040COMBAT — Deurne showcase
 
-A 37.5-second 9:16 invitation to 040COMBAT, the MMA, kickboxing and grappling gym in
+A 38.5-second 9:16 invitation to 040COMBAT, the MMA, kickboxing and grappling gym in
 Deurne. It is cut from the gym's own training footage and competition photos only, and ends on
 the gym's real logo.
 
@@ -20,7 +20,6 @@ It is built like the District98 Homecoming film:
 A few devices come from the Lemon Haus film:
 - the lights powering on over the group;
 - ghosted, step-printed memories;
-- photographs as prints on a table;
 - flash pops;
 - smears between shots.
 
@@ -29,14 +28,14 @@ Cut to Future & Metro Boomin's *Everyday Hustle* (`music/`, not in git). The tra
 
 | time | music | picture |
 |---|---|---|
-| 0–2 | from bar 7 | the gold octagon draws itself from the first frame and Milosz and his partner come up inside it · on the half bar the camera flies through it into the 4:5 window · two steps in on the exchange |
-| 2–8 | the vocals (bars 8–10) | the kick lands on the first vocal downbeat in slow motion · the throw · her combination · pads into a double-leg · an exchange under the wall sign |
-| 8–9 | silence | Bilal's hook freezes, the room falls away, the window closes to a line of warm light |
-| 9–19 | the drop (bars 32–36) | the line bursts open on Milosz's photograph · Imre's, until the camera pulls back and it is a print on a table, with Milosz's print dropping beside it · the d'arce roll · the arm-triangle · 50-50 · the gi · the armbar |
-| 19–25 | the breakdown (bars 52–54) | burn to white → Milosz laughing after the round · a coach explaining on the mat · the promotions become memories (black and white, step-printed, in the 4:5 window): a new belt under the wall sign |
-| 25–27 | bar 59, an 808 and air | the purple-belt hug in slow motion, the room cheering |
-| 27–29 | the beat returns (bar 60) | full frame and colour again · the kids sparring in gold gloves · the fighter steps in for the uppercut |
-| 29–37.5 | the song's drumless outro (bars 106–110) | the uppercut holds and the lights go out · they flicker back on over the no-gi team · the camera pulls back and the octagon closes around them · the gi team inside it · the octagon settles and the badge builds: banner, COMBAT, 040, the stars · DEURNE · the phrase ends and the film ends with it |
+| 0–3 | out of silence (bars 6½–7) | out of black the gold octagon draws itself and Milosz and his partner come up inside it · on the bar line the camera flies through it into the 4:5 window · two steps in on the exchange |
+| 3–9 | the vocals (bars 8–10) | the kick lands on the first vocal downbeat in slow motion · the throw · her combination · pads into a double-leg · an exchange under the wall sign |
+| 9–10 | silence | Bilal's hook freezes, the room falls away, the window closes to a line of warm light |
+| 10–20 | the drop (bars 32–36) | the line bursts open on Milosz's hand raised · Imre · the two together in black and white, each landing with a camera flash · the d'arce roll · the arm-triangle · 50-50 · the gi · the armbar |
+| 20–26 | the breakdown (bars 52–54) | burn to white → Milosz laughing after the round, warm like film · a coach explaining on the mat · the promotions become memories (black and white, step-printed, in the 4:5 window): a new belt under the wall sign |
+| 26–28 | bar 59, an 808 and air | the purple-belt hug in slow motion, the room cheering |
+| 28–30 | the beat returns (bar 60) | full frame and colour again · the kids sparring in gold gloves · the fighter steps in for the uppercut |
+| 30–38.5 | the song's drumless outro (bars 106–110), without its voice after the first line | the uppercut holds and the lights go out · they flicker back on over the no-gi team, warm like a real photograph · the camera pulls back and the octagon closes around them · the gi team inside it · the octagon settles and the badge builds: banner, COMBAT, 040, the stars · DEURNE · the phrase ends and the film ends with it |
 
 Real sound from the floor sits under the music: the kick, the throw landing, her punches,
 the pads and the double-leg, Bilal's hook, the d'arce roll, the armbar, the laugh, the room
@@ -62,10 +61,10 @@ The shots in the black-walled room get a small shadow lift: the darks rise by ab
 of the range, while black itself and the highlights stay put. People stay readable without
 opening up the noise.
 
-**The photographs.** The competition photos are treated as real photographs: warm, the blacks
-lifted to a brown paper black, creamy highlights, and the ring lights haloed the way film does
-it. Imre's photo becomes a print on a dark table under a lamp, and Milosz's print drops beside
-it. The team photos at the end get a lighter version of the same warmth.
+**The photographs.** The team photos at the end are treated as real photographs: warm, the
+blacks lifted to a brown paper black, creamy highlights. The laugh after the round gets a softer
+version of the same warm film look. The competition photos at the drop stay in the film's grade,
+then come back together in black and white.
 
 **The promotions in black and white.** The two promotions are phone clips, so they become
 memories. They get the film's black and white: silver, deep blacks, a breath of warmth in the
@@ -82,6 +81,12 @@ for the door.
 
 **Transitions.** Chapters change through a short burn to warm white. Everything else is a
 cut, plus two whips.
+
+**The outro without its voice.** After the first line of the outro ("this shit don't pop in
+the hood"), the song plays without its vocal. `edits/separate.py` runs an MDX-Net instrumental
+model (UVR-MDX-NET-Inst_HQ_3, ONNX on the CPU, in `work/models/`, not in git) on that stretch
+of the song. The voice left over measures about 32 dB below the original. The switch sits in
+the gap after the line, with a 60 ms crossfade.
 
 **Ads.** The song is not cleared for paid use. `--no-music-version` also writes `*_no-music.mp4`:
 the same picture with only the floor sounds, hall tails and impacts, ready for a licensed
