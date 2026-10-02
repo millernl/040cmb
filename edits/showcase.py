@@ -887,7 +887,7 @@ def build(w=1080, h=1920):
     # 3 · the people
     t = V_BREAK - BURN / 2
     sp = ramp([(0.0, 1.0), (0.45 + BURN / 2, 0.6)])
-    S(Shot(t, 4 * BEAT + BURN / 2, clip("Milosz.Bilal.KB2.mp4", 19.55 - BURN / 2, speed=sp, zoom=(1.66, 1.74),
+    S(Shot(t, 4 * BEAT + BURN / 2, clip("Milosz.Bilal.KB2.mp4", 19.32 - BURN / 2, speed=sp, zoom=(1.66, 1.74),   # ends before the clip does (20.77)
                                         track=[(0, 0.29, 0.34), (2.4, 0.37, 0.33)],
                                         post=lambda x: analog(x, 0.85, halo=0.04), mist=0.08,
                                         note="Milosz laughing after the round, warm like film"), trans=("burn", BURN)))
