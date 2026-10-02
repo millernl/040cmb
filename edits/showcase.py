@@ -1,24 +1,29 @@
-"""040COMBAT, Deurne — a 24-second 9:16 showcase.
+"""040COMBAT, Deurne — a 30-second 9:16 showcase.
 
-One look: a hard panchromatic black & white in which only what is really gold or yellow — the
-gold gloves, the yellow shin guards, the stars on the wall sign — prints in the logo's gold.
-At the drop the highlights gild and glow. Cut to Future & Metro Boomin's "Everyday Hustle"
-(music/, not in git; 119.67 BPM, bar = 2.006 s).
+Black & white throughout: graphite shadows, off-white paper highlights. Gold appears only as
+light — the gilded highlights of the competition photos, exposure flashes on the big hits —
+and in the type. People mattes (Robust Video Matting, afterfilm/matte.py) drive the white-
+silhouette frames, the gym falling away in the silence and the type standing behind the
+striker at the end. Cut to Future & Metro Boomin's "Everyday Hustle" (music/, not in git;
+119.67 BPM, bar = 2.006 s).
 
-  0.0–2.0    the hook · nine impacts cut on the eighth notes, each on its own sound: a
-             takedown, ground and pound in gold gloves, her kick, a scramble, a punch, a face,
-             an inversion, Milosz, the wall logo · three staccato punch-ins on Milosz
-  2.0–8.0    intro · the kick lands on the downbeat in slow motion, trailing light · a whip
-             into a body-lock throw · her combination · pads with the coach into a double-leg
-             · a jump-cut exchange under the wall logo
-  8.0–9.0    the music holds its breath; his punch freezes and the frame closes to a slit
-  9.0–15.0   the drop bursts it open, gilded · Milosz's hand raised, a whip to Imre, the two
-             slam together above and below · five hits: gold gloves, her knee, a kid on the pads
-             in light trails, the full room trading, a roll to the back
-  15.0–19.1  the breakdown · his laugh after the round, the packed class in slow motion, the
-             whole room lit out of silhouette on the 808
-  19.1–24.2  the beat returns · three pad combinations under the wall sign, each punched in
-             closer, and the uppercut that freezes into 040COMBAT, then DEURNE, on the beats
+  0.0–2.0    the hook · nine impacts on the eighth notes, each on its own sound, every other
+             one opening on a white-silhouette frame · three punch-ins on Milosz
+  2.0–8.0    intro · the kick lands on the downbeat in slow motion (a white frame on impact) ·
+             a whip into a body-lock throw · her combination · pads into a double-leg · an
+             exchange under the wall logo
+  8.0–9.0    silence · Bilal's hook freezes, the gym drains to black around them, the last two
+             frames print them white
+  9.0–19.1   the drop · Milosz's hand raised, Imre, the two slam together · then strikes and
+             grappling in turn: the packed class, the d'arce roll (slowed at the top), her
+             knee, the arm-triangle squeeze, Milosz trading, a sweep from the bottom, the armbar
+  19.1–23.1  the breakdown · a hard exchange that ends in his laugh · a kid on the pads with
+             his coach
+  23.1–25.1  the whole room lit out of silhouette on the 808
+  25.1–30.1  the beat returns · three pad combinations under the wall sign, punched in closer,
+             the uppercut freezes; 040COMBAT slams in behind the striker, then DEURNE
+
+The render also writes *_no-music.mp4: the same picture with the floor sounds only, for ads.
 
 Footage and photos are read from footage/ (the draft release 'footage'; never in git).
 
@@ -35,7 +40,7 @@ from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from afterfilm import brand, fx, gfx, media  # noqa: E402
+from afterfilm import brand, fx, gfx, matte, media  # noqa: E402
 from afterfilm.timeline import Clip, FrameBuffer, Overlay, Shot, Timeline, VideoSource  # noqa: E402
 
 FOOT = ROOT / "footage"
@@ -60,17 +65,17 @@ def SB(j):
 V_KICK = BAR                                 # 2.006: one bar of build, then the first downbeat
 V_PAUSE = V_KICK + 3 * BAR                   # 8.023: the intro stops on a bar line
 V_DROP = V_PAUSE + 2 * BEAT                  # 9.026: two beats of held breath
-V_BREAK = V_DROP + 3 * BAR                   # 15.043: into the breakdown
-V_PRE = V_BREAK + BAR                        # 17.049: the breakdown's last bar — an 808, then air
-V_RETURN = V_PRE + BAR                       # 19.055: the beat returns
-V_CARD = V_RETURN + BAR                      # 21.060: the end card
-V_LAST = V_CARD + BAR                        # 23.066: the last downbeat
-DURATION = V_LAST + 1.15
+V_BREAK = V_DROP + 5 * BAR                   # 19.057: into the breakdown
+V_PRE = V_BREAK + 2 * BAR                    # 23.069: the breakdown's last bar — an 808, then air
+V_RETURN = V_PRE + BAR                       # 25.075: the beat returns
+V_CARD = V_RETURN + BAR                      # 27.080: the end card
+V_LAST = V_CARD + BAR                        # 29.086: the last downbeat
+DURATION = V_LAST + 1.0
 
 # music: (video start, song start, song end, gain dB)
 MUSIC_PLAN = [(0.0, SB(7), SB(11), 3.0),
-              (V_DROP, SB(32), SB(35), 0.0),
-              (V_BREAK, SB(52), SB(53), 2.0),
+              (V_DROP, SB(32), SB(37), 0.0),
+              (V_BREAK, SB(52), SB(54), 2.0),
               (V_PRE, SB(59), SB(62) + 0.9, 1.0)]
 
 
@@ -128,11 +133,16 @@ NOMATCH = dict(black=0.0, scale=1.0, expo=0.0)
 
 class MClip(Clip):
     """A clip with per-frame framing and grade: staccato zoom steps, a keyed track, light
-    trails and exposure that change inside the shot. It measures itself when decoded."""
+    trails and exposure that change inside the shot. It measures itself when decoded. With
+    `white` (local frame numbers) or `want_alpha`, it also carries the people matte (RVM):
+    on a white frame the athletes print as pure white silhouettes on black."""
 
-    def setup(self, zsteps=None, track=None, zfn=None, expo_fn=None, gold_fn=None, echo_fn=None):
+    def setup(self, zsteps=None, track=None, zfn=None, expo_fn=None, gold_fn=None, echo_fn=None, white=(), want_alpha=False):
         self.zsteps, self.trackt, self.zfn = zsteps, track, zfn
         self.expo_fn, self.gold_fn, self.echo_fn = expo_fn, gold_fn, echo_fn
+        self.white = set(white)
+        self.want_alpha = want_alpha or bool(self.white)
+        self.abuf = None
         return self
 
     def prepare(self, dur, fps, size):
@@ -140,6 +150,39 @@ class MClip(Clip):
         super().prepare(dur, fps, size)
         if fresh and "match" not in self.grade:
             self.grade = {**self.grade, "match": measure(self.buf.frames)}
+        if fresh and getattr(self, "want_alpha", False) and self.abuf is None:
+            if isinstance(self.source, StillSource):
+                self.abuf, self.a0 = matte.still(self.source.img), 0.0
+            else:
+                t0, t1 = self.src_time(0), self.src_time(dur)
+                self.a0 = t0
+                self.abuf = matte.mattes(self.source.path, t0, t1 + 0.1, FPS)
+
+    def release(self):
+        super().release()
+
+    def local_speed(self, lt):
+        if isinstance(self.speed, (list, tuple)):
+            return float(np.interp(lt, [k[0] for k in self.speed], [k[1] for k in self.speed]))
+        return float(self.speed)
+
+    def sample(self, st, lt):
+        """Real time and faster: the nearest whole source frame (beats don't fall on the frame
+        grid, and blending two frames ghosts fast action). Slow motion: blend neighbours."""
+        b = self.buf
+        if self.local_speed(lt) >= 0.75 or len(b.frames) == 1:
+            i = int(np.clip(round((st - b.t0) * b.fps), 0, len(b.frames) - 1))
+            return b.frames[i].astype(np.float32) / 255.0
+        return b.frame(st)
+
+    def alpha(self, lt, dur, out_size, freeze_at=None):
+        """The people matte at local time lt, framed exactly like the picture."""
+        st = self.src_time(min(lt, freeze_at) if freeze_at is not None else lt)
+        a = self.abuf[int(np.clip(round((st - self.a0) * FPS), 0, len(self.abuf) - 1))] if self.abuf.ndim == 3 else self.abuf
+        bh, bw = self.buf.frames.shape[1:3]
+        a = cv2.resize(a, (bw, bh), interpolation=cv2.INTER_LINEAR)
+        z, cx, cy = self.framing(lt, dur)
+        return np.clip(fx.reframe(a[..., None].repeat(3, -1), z, cx, cy, out_size=out_size)[..., 0], 0, 1)
 
     def framing(self, lt, dur):
         p = float(np.clip(lt / max(dur, 1e-6), 0, 1))
@@ -158,8 +201,11 @@ class MClip(Clip):
         return z, cx, cy
 
     def frame(self, lt, dur, look, freeze_at=None, out_size=None, **over):
+        if self.white and int(lt * FPS + 1e-6) in self.white:      # frames counted from the shot's first
+            a = self.alpha(lt, dur, out_size or (self.buf.frames.shape[2], self.buf.frames.shape[1]), freeze_at)[..., None]
+            return (0.006 + a * PAPER * 0.97).astype(np.float32)
         st = self.src_time(min(lt, freeze_at) if freeze_at is not None else lt)
-        img = self.buf.frame(st)
+        img = self.sample(st, lt if freeze_at is None or lt < freeze_at else freeze_at)
         echo = self.echo_fn(lt) if getattr(self, "echo_fn", None) else self.echo
         if echo > 0.01:
             # chronophotography: earlier instants of the move linger as light
@@ -176,14 +222,14 @@ class MClip(Clip):
 
 
 def clip(name, t_in, speed=1.0, zoom=(1.0, 1.0), center=(0.5, 0.5), note="", echo=0.0, decode_zoom=None,
-         zsteps=None, track=None, zfn=None, expo_fn=None, gold_fn=None, echo_fn=None, **grade):
+         zsteps=None, track=None, zfn=None, expo_fn=None, gold_fn=None, echo_fn=None, white=(), want_alpha=False, **grade):
     s = src(name)
     zmax = decode_zoom or max([max(zoom)] + [z[1] for z in (zsteps or [])])
     sw, sh = sorted((s.info["width"], s.info["height"]))      # portrait after rotation
     dw = int(min(sw, max(1080, round(1080 * zmax))) // 2 * 2)
     dh = int(min(sh, max(1920, round(1920 * zmax))) // 2 * 2)
     c = MClip(s, t_in, speed=speed, zoom=zoom, center=center, note=note, echo=echo, grade=grade, decode=(dw, dh))
-    return c.setup(zsteps, track, zfn, expo_fn, gold_fn, echo_fn)
+    return c.setup(zsteps, track, zfn, expo_fn, gold_fn, echo_fn, white, want_alpha)
 
 
 def photo(name, zoom=(1.0, 1.0), center=(0.5, 0.5), note="", decode_zoom=None, zfn=None, zsteps=None, expo_fn=None, **grade):
@@ -212,7 +258,7 @@ class CombatLook(fx.Look):
     def __init__(self, w, h):
         super().__init__(w, h, accent=GOLD)
 
-    def grade(self, img, match=None, gold=0.0, exposure=0.0, contrast=0.46, accents=1.0, **_):
+    def grade(self, img, match=None, gold=0.0, exposure=0.0, contrast=0.46, accents=0.0, **_):
         x = np.clip(img, 0, 1).astype(np.float32)
         e = exposure
         if match:
@@ -225,7 +271,7 @@ class CombatLook(fx.Look):
         v = np.clip(v + contrast * (v * v * (3 - 2 * v) - v), 0, 1)
         vv = v[..., None]
         out = vv * (GRAPHITE + (PAPER - GRAPHITE) * vv)
-        warm = fx.smoothstep(0.55, 1.0, vv) * (0.10 + 0.30 * gold)
+        warm = fx.smoothstep(0.55, 1.0, vv) * (0.03 + 0.33 * gold)
         out = out * (1 - warm) + np.clip(vv * METAL, 0, 1) * warm
         if accents:
             hsv = cv2.cvtColor(x, cv2.COLOR_RGB2HSV)
@@ -302,13 +348,13 @@ def build(w=1080, h=1920):
     look = CombatLook(w, h)
     tl = Timeline(w, h, FPS, DURATION, look)
     S = tl.add
-    neg, flashes = set(), []                 # single negative frames, gold exposure flashes
+    flashes = []                              # gold exposure flashes: (time, strength, length)
 
-    # 0 · the hook: nine impacts on the eighth notes, accelerating, each on its own sound
-    E = BEAT / 2
+    # 0 · the hook: nine impacts on the eighth notes, accelerating, each on its own sound; every
+    #     other cut opens on one frame of the athletes as white silhouettes
     for k, (t0, d, name, s_imp, z, c, note) in enumerate(HOOK):
-        S(Shot(t0, d, clip(name, s_imp - 0.06, zoom=(z, z * 1.04), center=c, note=note), punch=0.05 if k < 5 else 0.0))
-    neg.update({F(HOOK[4][0]) + 1})
+        S(Shot(t0, d, clip(name, s_imp - 0.06, zoom=(z, z * 1.04), center=c, note=note, white={0} if k % 2 == 0 and k < 8 else ()),
+               punch=0.05 if k < 5 else 0.0))
     # Milosz: three staccato punch-ins, then the kick lands wide on the downbeat in slow motion
     t = 1.60
     imp = V_KICK - t
@@ -317,9 +363,8 @@ def build(w=1080, h=1920):
         speed=[(0, 1.0), (imp + 0.01, 1.0), (imp + 0.06, 0.28), (imp + 0.62, 0.28), (imp + 0.82, 1.0), (9, 1.0)],
         zsteps=[(0, 1.0, 0.5, 0.5), (0.13, 1.2, 0.70, 0.42), (0.27, 1.42, 0.72, 0.40), (imp, 1.04, 0.5, 0.5, 0.05)],
         echo_fn=lambda lt: 0.75 * fx.smoothstep(imp, imp + 0.08, lt) * (1 - fx.smoothstep(imp + 0.6, imp + 0.8, lt)),
-        note="Milosz's high kick lands on the downbeat"), shake=0.0))
-    neg.add(F(V_KICK) + 1)
-    flashes.append((V_KICK, 0.75, 0.2))
+        white={int(round(imp * FPS)) + 1}, note="Milosz's high kick lands on the downbeat")))
+    flashes.append((V_KICK + 2 / FPS, 0.6, 0.2))
 
     # 2 · intro: kick → throw → her hands → pads into a double-leg → the exchange
     t = vb(V_KICK, 2)                                                    # 3.008
@@ -333,16 +378,16 @@ def build(w=1080, h=1920):
     t = vb(V_KICK, 6)                                                    # 5.014
     S(Shot(t, 4 * BEAT, clip("action.mp4", 3.45, speed=[(0, 1.0), (1.35, 1.0), (1.40, 0.6), (1.85, 0.6), (1.90, 1.0), (9, 1.0)],
                               zoom=(1.0, 1.08), center=(0.5, 0.52), note="pads with the coach, into a double-leg")))
-    neg.add(F(vb(V_KICK, 6) + 1.96))
-    # a jump-cut exchange under the wall logo, the second half punched in; his punch freezes
+    # a jump-cut exchange under the wall logo, the second half punched in; Bilal's hook freezes,
+    # and in the silence the gym falls away around them
     t = vb(V_KICK, 10)                                                   # 7.020
     S(Shot(t, BEAT, clip("Milosz.Bilal.KB2.mp4", 8.55, zoom=(1.0, 1.03), note="Milosz and Bilal trade under the wall logo")))
     t = vb(V_KICK, 11)                                                   # 7.522
-    S(Shot(t, V_DROP - t, clip("Milosz.Bilal.KB2.mp4", 9.50, zoom=(1.16, 1.18), center=(0.5, 0.5),
-                                note="…punched in → his punch freezes"), freeze_at=V_PAUSE - t))
-    neg.add(F(V_PAUSE) + 2)
+    void = Void(clip("Milosz.Bilal.KB2.mp4", 9.50, zoom=(1.16, 1.16), want_alpha=True, note="…punched in → the hook freezes, the gym falls away"),
+                t, V_PAUSE, V_DROP)
+    S(Shot(t, V_DROP - t, render=void.picture, clips=[void.clip]))
 
-    # 3 · the drop, in gold: the achievements
+    # 3 · the drop: the achievements, then strikes and grappling in turn, the grappling given room
     t = V_DROP
     S(Shot(t, 2 * BEAT, photo("Milosz.Celebration.jpg", center=(0.40, 0.42), gold=1.0, exposure=-0.15, decode_zoom=1.2,
                               zfn=lambda lt: (ease_snap(lt, 0.16), 0.40, 0.42), note="Milosz, hand raised"), shake=0.7))
@@ -354,31 +399,35 @@ def build(w=1080, h=1920):
     t = vb(V_DROP, 4)                                                    # 11.032
     dip = Diptych(w, h)
     S(Shot(t, 2 * BEAT, render=dip.render, clips=dip.clips))
-    neg.add(F(t + Diptych.SLAM) + 1)
     flashes.append((t + Diptych.SLAM, 0.6, 0.18))
-    # five hits, gold and iron in turn
-    t = vb(V_DROP, 6)                                                    # 12.035
-    S(Shot(t - WHIP / 2, BEAT + WHIP / 2, clip("KB3.mp4", 8.45 - WHIP / 2, zoom=(1.05, 1.1), gold=1.0,
-                                               note="a round in the full room, gold gloves"), trans=("smear", WHIP)))
-    t = vb(V_DROP, 7)
+    t = vb(V_DROP, 6)
+    S(Shot(t - WHIP / 2, BEAT + WHIP / 2, clip("boxing.instructies.mp4", 28.30, zoom=(1.08, 1.04), gold=0.5,
+                                               note="the packed class"), trans=("smear", WHIP)))
+    t = vb(V_DROP, 7)                                                    # the d'arce roll, slowed at the top
+    S(Shot(t, 3 * BEAT, clip("Makhachev.D.arce.mp4", 19.62, speed=[(0, 1.0), (0.40, 1.0), (0.46, 0.45), (1.10, 0.45), (1.18, 1.0), (9, 1.0)],
+                              zoom=(1.14, 1.08), center=(0.5, 0.5), echo_fn=lambda lt: 0.45 * fx.smoothstep(0.35, 0.5, lt) * (1 - fx.smoothstep(1.0, 1.2, lt)),
+                              note="the d'arce roll")))
+    t = vb(V_DROP, 10)
     S(Shot(t, BEAT, clip("good.kickboxing.clip.mp4", 4.06, zoom=(1.36, 1.42), center=(0.60, 0.38), note="her knee"),
            trans=("strobe", 0.1)))
-    t = vb(V_DROP, 8)
-    S(Shot(t, 2 * BEAT, clip("extra.mp4", 9.15, zoom=(1.14, 1.2), gold=1.0, echo_fn=lambda lt: 0.5 * fx.smoothstep(0.05, 0.25, lt),
-                              note="a kid on the pads with his coach, the room full, in light trails")))
-    t = vb(V_DROP, 10)
+    t = vb(V_DROP, 11)                                                   # the arm-triangle squeeze, close
+    S(Shot(t, 2 * BEAT, clip("arm.triangle.mp4", 4.70, zoom=(1.45, 1.62), center=(0.42, 0.56), note="the arm-triangle squeeze")))
+    t = vb(V_DROP, 13)
     S(Shot(t, BEAT, clip("Milosz.Bilal.mp4", 36.67, zoom=(1.08, 1.12), note="trading with the room watching"), punch=0.04))
-    t = vb(V_DROP, 11)
-    S(Shot(t, V_BREAK - t, clip("RNC.mp4", 2.55, zoom=(1.08, 1.14), center=(0.5, 0.45), gold=1.0,
-                                 note="a roll to the back"), punch=0.04))
+    t = vb(V_DROP, 14)
+    S(Shot(t, 2 * BEAT, clip("Michael.x.Dilbrien.scramble.mp4", 68.35, zoom=(1.14, 1.18), center=(0.5, 0.42),
+                              echo_fn=lambda lt: 0.5 * fx.smoothstep(0.1, 0.3, lt), note="legs flying, a sweep from the bottom")))
+    t = vb(V_DROP, 16)                                                   # the armbar, given room
+    S(Shot(t, V_BREAK - t, clip("armbar.mp4", 8.40, zoom=(1.12, 1.24), center=(0.48, 0.6), note="the armbar, from the fall back to the finish"),
+           trans=("smear", WHIP)))
 
-    # 4 · the breakdown: the people
+    # 4 · the breakdown: the people — a hard exchange that ends in a laugh, a coach and a kid
     t = V_BREAK
-    S(Shot(t, 2 * BEAT, clip("Milosz.Bilal.KB2.mp4", 19.95, speed=0.8, zoom=(1.45, 1.5), center=(0.40, 0.36), contrast=0.36,
-                              note="his laugh after the round")))
-    t = vb(V_BREAK, 2)
-    S(Shot(t, 2 * BEAT, clip("boxing.instructies.mp4", 28.45, speed=0.5, zoom=(1.08, 1.0), center=(0.5, 0.5), contrast=0.36,
-                              note="the packed class, 120 fps slowed to half")))
+    S(Shot(t, 4 * BEAT, clip("Milosz.Bilal.KB2.mp4", 18.62, zoom=(1.22, 1.38), center=(0.42, 0.40), contrast=0.4,
+                              note="a hard exchange that ends in his laugh")))
+    t = vb(V_BREAK, 4)
+    S(Shot(t, 4 * BEAT, clip("extra.mp4", 8.95, speed=0.8, zoom=(1.12, 1.2), center=(0.5, 0.45), contrast=0.4,
+                              note="a kid on the pads with his coach, the room full")))
     # the whole room, lit out of silhouette on the 808
     S(Shot(V_PRE, V_RETURN - V_PRE, photo("Of.voor.communityy.jpg", zsteps=[(0, 1.05, 0.5, 0.46, 0.035)], decode_zoom=1.12,
                                           contrast=0.36, expo_fn=strike([-7, -7, -2.0, -7, -0.6, -3.5, -0.3, -1.2, 0, 0, -0.5]),
@@ -389,40 +438,50 @@ def build(w=1080, h=1920):
     for k, (s_hit, z, note) in enumerate([(12.16, 1.0, "a combination on the pads"), (15.04, 1.16, "…closer"),
                                           (18.07, 1.34, "…closer")]):
         t = vb(V_RETURN, k)
-        S(Shot(t, BEAT, clip("wall.drill.near.the.end.mp4", s_hit - 0.03, zoom=(z, z * 1.02), center=(0.5, 0.46), gold=0.4,
+        S(Shot(t, BEAT, clip("wall.drill.near.the.end.mp4", s_hit - 0.03, zoom=(z, z * 1.02), center=(0.5, 0.46),
                               note=note), punch=0.03))
     t = vb(V_RETURN, 3)
-    card = EndCard(w, h, clip("wall.drill.near.the.end.mp4", 8.98 - (V_CARD - t), note="the uppercut → the end card"))
+    card = EndCard(w, h, clip("wall.drill.near.the.end.mp4", 8.98 - (V_CARD - t), want_alpha=True,
+                              note="the uppercut → the end card"))
     S(Shot(t, DURATION - t, render=card.picture, clips=[card.clip]))
     tl.overlays.append(Overlay(V_CARD, DURATION, card.draw, "post"))
-    neg.update({F(V_CARD) + 1, F(card.T1)})
     flashes.append((V_CARD, 0.8, 0.25))
 
-    # global per-frame events: gold flashes, single negative frames
     def events(t, img, tl):
         for t0, k, d in flashes:
             if t0 <= t < t0 + d * 2.5:
                 img = fx.flash(img, k * max(0.0, 1 - (t - t0) / d), GOLD_TINT)
-        if F(t) in neg:
-            img = (1.0 - img @ fx.LUMA)[..., None] * PAPER       # a single frame printed in negative
         return img
     tl.overlays.insert(0, Overlay(0.0, DURATION, events, "pre"))
-
-    # the pause: the frozen punch closes to a slit; the drop bursts it open
-    def bars(t):
-        a0 = V_PAUSE + 0.14
-        if a0 <= t < V_DROP:
-            return 1.29 * fx.ease_in((t - a0) / (V_DROP - a0)) ** 0.8
-        if V_DROP <= t < V_DROP + 0.16:
-            return 1.29 * (1 - fx.expo_out((t - V_DROP) / 0.16))
-        return 0.0
-    tl.bars = bars
-    tl.bar_ratio = 2.39
     tl.cinema_at = lambda t: {"mono": 1.0, "streaks": 0.0, "halation": 0.3, "bloom": 0.22, "weave": 0.35}
     tl.grain_at = lambda t: 0.75
     tl.vignette_at = lambda t: 0.6
     tl.audio_plan = sounds()
     return tl
+
+
+class Void:
+    """Bilal's hook freezes on the music's last beat. In the silence the gym drains to black
+    around the two of them while the frame pushes in; the last two frames before the drop
+    print them as white silhouettes."""
+
+    def __init__(self, clip, start, t_freeze, t_drop):
+        self.clip, self.start, self.tf, self.td = clip, start, t_freeze, t_drop
+
+    def picture(self, shot, lt, tl):
+        w, h = tl.w, tl.h
+        fz = self.tf - self.start
+        if lt < fz:
+            return self.clip.frame(lt, shot.dur, tl.look, out_size=(w, h))
+        k = lt - fz
+        img = self.clip.frame(fz, shot.dur, tl.look, out_size=(w, h), contrast=0.55)
+        a = self.clip.alpha(fz, shot.dur, (w, h))
+        if self.td - (self.start + lt) <= 2 / FPS + 1e-6:
+            return (0.006 + a[..., None] * PAPER * 0.97).astype(np.float32)
+        drain = fx.ease_out(fx.window(k, 0.06, 0.55))
+        img = img * (1 - 0.94 * drain * (1 - a[..., None]))
+        z = 1.0 + 0.06 * fx.ease_in_out(k / (self.td - self.tf))
+        return fx.reframe(img, z, 0.52, 0.42)
 
 
 class Diptych:
@@ -456,8 +515,9 @@ class Diptych:
 
 
 class EndCard:
-    """The uppercut freezes in iron and drifts up toward the wall logo while the room goes
-    dark; 040COMBAT slams in on the next beat, DEURNE on the one after."""
+    """The uppercut freezes and drifts up toward the wall logo while the room goes dark around
+    the two of them; 040COMBAT slams in behind their legs on the next beat, DEURNE on the one
+    after."""
 
     def __init__(self, w, h, clip):
         self.w, self.h, self.clip = w, h, clip
@@ -470,6 +530,7 @@ class EndCard:
         self.f_small = brand.font(FONT, self.size * 0.36)
         yy = np.linspace(0, 1, h, dtype=np.float32)[:, None, None]
         self.shade = 0.5 + 0.5 * fx.smoothstep(0.38, 0.66, yy)
+        self.right = fx.smoothstep(0.46, 0.54, np.linspace(0, 1, w, dtype=np.float32))[None, :, None]
 
     def picture(self, shot, lt, tl):
         w, h = self.w, self.h
@@ -478,9 +539,13 @@ class EndCard:
             return self.clip.frame(lt, shot.dur, tl.look, out_size=(w, h), gold=0.6)
         k = lt - hit
         img = self.clip.frame(hit, shot.dur, tl.look, out_size=(w, h), contrast=0.5)
-        img = fx.reframe(img, 1.0 + 0.05 * fx.ease_out(k / 3.0), 0.5, 0.36)
+        a = self.clip.alpha(hit, shot.dur, (w, h))
+        z = 1.0 + 0.05 * fx.ease_out(k / 3.0)
+        img = fx.reframe(img, z, 0.5, 0.36)
+        a = fx.reframe(a[..., None].repeat(3, -1), z, 0.5, 0.36)[..., :1]
+        self._a = (round(shot.start + lt, 4), a)
         dark = fx.ease_out(fx.window(k, 0.05, 0.5))
-        return img * (1 - dark * self.shade * 0.86)
+        return img * (1 - dark * self.shade * 0.88 * (1 - 0.75 * a))
 
     def _slam(self, c, text, font, x, y, lt, color, tracking):
         if lt < 0:
@@ -497,16 +562,27 @@ class EndCard:
         layer = tl.layer
         layer.clear()
         c = layer.c
-        y1 = h * 0.71
+        y1 = h * 0.775                                  # leg height: only shins cross the letters
         pulse = 1.0 + 0.012 * np.exp(-max(t - V_LAST, 0) / 0.1) * (t >= V_LAST)
         c.save()
         c.translate(w / 2, y1)
         c.scale(pulse, pulse)
         c.translate(-w / 2, -y1)
         self._slam(c, "040COMBAT", self.f_big, w / 2, y1, t - self.T1, OFFWHITE, 0.0)
+        c.restore()
+        out = layer.over(img)
+        a = getattr(self, "_a", (None, None))[1]
+        if a is not None:
+            a = a * self.right                             # the striker stands in front of the type
+            out = out * (1 - a) + img * a
+        layer.clear()
+        c.save()
+        c.translate(w / 2, y1)
+        c.scale(pulse, pulse)
+        c.translate(-w / 2, -y1)
         self._slam(c, "DEURNE", self.f_small, w / 2, y1 + self.size * 0.48, t - self.T2, GOLD, 0.16)
         c.restore()
-        return layer.over(img)
+        return layer.over(out)
 
 
 # ── sound ────────────────────────────────────────────────────────────────────
@@ -526,9 +602,9 @@ def sounds():
         (vb(V_KICK, 6) + 1.92, "action.mp4", 5.18, 5.45, -6),               # the double-leg lands
         (V_PAUSE - 0.03, "Milosz.Bilal.KB2.mp4", 9.97, 10.45, -1),          # the punch the music stops on
         (vb(V_DROP, 4) + Diptych.SLAM - 0.02, "wall.drill.near.the.end.mp4", 8.95, 9.30, -6),
-        (vb(V_DROP, 7) + (4.28 - 4.06), "good.kickboxing.clip.mp4", 4.28, 4.55, -6),
-        (vb(V_DROP, 10) + (36.90 - 36.67), "Milosz.Bilal.mp4", 36.90, 37.30, -6),
-        (V_BREAK + 0.06, "Milosz.Bilal.KB2.mp4", 20.0, 20.75, -5),           # the laugh
+        (vb(V_DROP, 10) + (4.28 - 4.06), "good.kickboxing.clip.mp4", 4.28, 4.55, -6),
+        (vb(V_DROP, 13) + (36.90 - 36.67), "Milosz.Bilal.mp4", 36.90, 37.30, -6),
+        (V_BREAK, "Milosz.Bilal.KB2.mp4", 18.62, 20.62, -4),                # the exchange and the laugh
     ] + combos + [
         (V_CARD - 0.03, "wall.drill.near.the.end.mp4", 8.95, 9.40, -1),      # the uppercut
     ]
@@ -550,11 +626,15 @@ def _verb(x, ir):
     return np.stack([signal.fftconvolve(x[:, c], ir[:, c]) for c in range(2)], 1).astype(np.float32)
 
 
-def mix(plan, sr=48000):
+def mix(plan, sr=48000, music=True):
+    """The mix. music=False: the floor sounds alone (and the hall tails), for laying a
+    licensed track under it in an ad."""
     from scipy import signal
     n = int(round(DURATION * sr))
     out = np.zeros((n, 2), np.float32)
     song = media.read_audio(str(MUSIC), 0.0, None, sr=sr, channels=2)      # read once, slice in memory
+    if not music:
+        song = np.zeros_like(song)
     xf = int(0.012 * sr)
     for k, (v0, s0, s1, gdb) in enumerate(MUSIC_PLAN):
         lead = 0.0 if k == 0 else 0.015                                   # splice just ahead of the downbeat
@@ -636,3 +716,10 @@ if __name__ == "__main__":
         wav = str(out.with_suffix(".wav"))
         media.write_wav(wav, mix(tl.audio_plan))
         tl.render(str(out), wav=wav)
+        # the same picture with the floor sounds only, for ads (the song is not cleared for paid use)
+        import subprocess
+        me = str(out.with_name(out.stem + "_no-music.wav"))
+        media.write_wav(me, mix(tl.audio_plan, music=False))
+        subprocess.run([media.ffmpeg(), "-v", "error", "-y", "-i", str(out), "-i", me, "-map", "0:v", "-map", "1:a",
+                        "-c:v", "copy", "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart",
+                        str(out.with_name(out.stem + "_no-music.mp4"))], check=True)

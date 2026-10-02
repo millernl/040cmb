@@ -1,40 +1,45 @@
 # 040COMBAT — Deurne showcase
 
-A 24-second 9:16 showcase for 040COMBAT, the MMA, kickboxing and grappling gym in
+A 30-second 9:16 showcase for 040COMBAT, the MMA, kickboxing and grappling gym in
 Deurne. It is cut from the gym's own training footage and competition photos only.
 
 ## The edit (`edits/showcase.py`)
 
 Cut to Future & Metro Boomin's *Everyday Hustle* (`music/`, not in git). The track runs at
-119.67 BPM, so a bar is 2.006 s; the grid is fitted on its kick pattern. There is one bar
-of build, then the intro under the action, a held breath on a freeze, the drop for the
-achievements and a burst, the breakdown for the people, and the beat back for the last
-hits and the end card. Every splice is on a bar line.
+119.67 BPM, so a bar is 2.006 s; the grid is fitted on its kick pattern. Every splice is on
+a bar line.
 
 | time | music | picture |
 |---|---|---|
-| 0–2 | build (bar 7) | the hook: nine impacts cut on the eighth notes, each on its own sound (a takedown, ground and pound in gold gloves, her kick, a cross, a jab, a face, an inversion, gold gloves, the wall sign), then three staccato punch-ins on Milosz |
-| 2–8 | intro (bars 8–11) | the kick lands on the downbeat in slow motion, trailing light · a whip into a body-lock throw · her combination · pads with the coach into a double-leg · a jump-cut exchange under the wall logo |
-| 8–9 | held breath: the intro's last instant rings out in a hall | his punch freezes on a negative frame and the picture closes to a slit |
-| 9–15 | the drop (bars 32–35) | the slit bursts open, gilded · Milosz's hand raised, a whip up to Imre, the two slam together above and below · five hits: gold gloves, her knee, a kid on the pads in light trails, the full room trading, a roll to the back |
-| 15–19 | the breakdown (bars 52, 59) | his laugh after the round · the packed class in slow motion · the whole room lit out of silhouette on the 808 |
-| 19–24 | the beat returns (bars 60–62) | three pad combinations under the wall sign, each punched in closer · the uppercut freezes, 040COMBAT slams in on the next beat, DEURNE on the one after |
+| 0–2 | build (bar 7) | the hook: nine impacts on the eighth notes, each on its own sound, every other one opening on a white-silhouette frame · three punch-ins on Milosz |
+| 2–8 | intro (bars 8–10) | the kick lands on the first vocal downbeat in slow motion · a whip into a body-lock throw · her combination · pads into a double-leg · an exchange under the wall logo |
+| 8–9 | silence; the intro rings out in a hall | Bilal's hook freezes, the gym drains to black around the two of them, the last two frames print them white |
+| 9–19 | the drop (bars 32–36) | Milosz's hand raised · a whip up to Imre · the two slam together · then strikes and grappling in turn: the packed class, the d'arce roll slowed at the top, her knee, the arm-triangle squeeze, Milosz trading, a sweep from the bottom, the armbar given room |
+| 19–23 | the breakdown (bars 52–53) | a hard exchange that ends in his laugh · a kid on the pads with his coach |
+| 23–25 | bar 59, an 808 and air | the whole room lit out of silhouette |
+| 25–30 | the beat returns (bars 60–61) | three pad combinations under the wall sign, each punched in closer · the uppercut freezes, the room goes dark, 040COMBAT slams in behind the striker's legs, DEURNE on the next beat |
 
-Real sound from the floor cuts through the music: the kick, the throw, her punches, the
-pads, the double-leg, the punch the music stops on, the photos slamming together, the
-knee, the laugh, the last three hits.
+Real sound from the floor cuts through the music: the hook's impacts, the kick, the throw,
+her punches, the pads, the double-leg, Bilal's hook, the photos slamming together, the
+knee, the exchange and the laugh, the last combinations and the uppercut.
 
-**One look: black & white with gold accents.** A hard panchromatic black & white, with
-neutral graphite shadows and off-white paper highlights. Only what is really gold or yellow
-in the frame keeps colour, printed in the logo's gold (#C09B53): the gold gloves, the yellow
-shin guards, the stars on the wall sign. At the drop and on the photos the highlights gild
-and the light glows warm. Each shot is first matched for black point, white point and
-exposure, so phone footage from different rooms prints the same. On top: fine grain, gate
-weave, gold flashes on the hits and single negative frames.
+**Look.** Black and white throughout: a hard panchromatic print with graphite shadows and
+off-white paper highlights. Each shot is first matched for black point, white point and
+exposure, so phone footage from different rooms prints the same. Gold appears only as
+light: the gilded highlights of the competition photos and exposure flashes on the big hits.
+It is also the colour of DEURNE in the type.
 
-**Identity.** The logo is never pasted on: it appears as the real sign on the gym wall.
-It flashes in the build, sits over the exchange, and stands in black and white behind the
-type at the end. The type is Barlow Condensed ExtraBold (`brand/fonts`, OFL).
+**Mattes.** `afterfilm/matte.py` runs Robust Video Matting (Lin et al.; GPL-3.0 weights,
+downloaded to `work/models/`, not in git) on the shots that need people separated from the
+gym. These drive the white-silhouette frames, the gym draining away in the silence, and the
+type standing behind the striker at the end. The mattes are cached in `work/mattes/`.
+
+**Ads.** The song is not cleared for paid use. Every render also writes `*_no-music.mp4`:
+the same picture with only the floor sounds and hall tails, ready for a licensed track at
+around 120 BPM.
+
+**Identity.** The logo is never pasted on: it appears as the real sign on the gym wall. The
+type is Barlow Condensed ExtraBold (`brand/fonts`, OFL).
 
 ```bash
 python edits/showcase.py                                  # renders/040COMBAT_showcase_9x16.mp4 (+ .wav)
