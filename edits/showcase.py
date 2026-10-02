@@ -1,32 +1,30 @@
-"""040COMBAT, Deurne — a 34-second 9:16 invitation.
+"""040COMBAT, Deurne — a 38-second 9:16 invitation.
 
-Not a fight trailer: an invitation. The skill and the range first, then the people — coaching,
-laughing, promotions, the hug — and it ends on the two team photos under the wall sign.
+Built the way the District98 film is: the brand mark opens as a door into the footage, the first
+chapter plays in a 4:5 cinema window that closes to a slit in the silence and bursts open on the
+drop, one disciplined grade runs through everything, and the film ends on the logo. Here the door
+is 040COMBAT's own gold octagon and the end is the real badge (work/logo2, the gym's PDF, split
+into its vector layers by edits/logo_art.py) building itself after the teams.
 
-The look is one warm, low-key colour grade, calibrated on the Arma BJJ reference (measured tone
-by tone: brown-black shadows, an amber cast through the mids, cream highlights, saturation that
-falls off toward the top). Each shot is white-balanced and exposure-matched first; skin, gold and
-amber keep their colour, cool colours are muted, not erased. A people matte (Robust Video
-Matting, afterfilm/matte.py) lets the room sit lower than the athletes. Chapters change through
-a short burn to white, as in the reference; everything else is a cut. Cut to Future & Metro
-Boomin's "Everyday Hustle" (music/, not in git; 119.67 BPM, bar = 2.006 s).
-
-  0.0–3.0    out of black, the light comes on behind Milosz and his partner · the light lands ·
-             three punch-ins on the eighth notes
+  0.0–2.0    out of black the gold octagon draws itself and Milosz and his partner come up inside
+             it; on the bar line the camera flies through it into the 4:5 window
+  2.0–3.0    three punch-ins on the eighth notes
   3.0–9.0    the kick lands on the first vocal downbeat in slow motion · the throw · her
              combination · pads into a double-leg · an exchange under the wall sign
-  9.0–10.0   silence · Bilal's hook freezes, the room falls away around them
-  10.0–20.1  burn to white → the drop · Milosz's hand raised, Imre, the two together · the d'arce
-             roll · the arm-triangle · Milosz trading · 50-50 · the gi · the armbar
-  20.1–26.1  burn to white → the people · a coach on the mat · a kid on the pads with his coach ·
-             Milosz laughing after a round · a new belt and a hug · a congratulation
+  9.0–10.0   silence · Bilal's hook freezes, the room falls away, the frame closes to a slit
+  10.0–20.1  the slit bursts open into the full frame · Milosz's hand raised, Imre, the two together
+             · the d'arce roll · the arm-triangle · 50-50 · the gi · the armbar
+  20.1–26.1  burn to white → the people · Milosz laughing after the round · a coach explaining on
+             the mat · a new belt under the wall sign
   26.1–28.1  the 808 · the purple-belt hug, in slow motion, the room cheering
-  28.1–30.1  the beat returns · the gi roll · a combination under the wall sign · the uppercut
-  30.1–34.5  the uppercut holds · burn to white → the two teams, no-gi above, gi below, both under
-             the wall sign · the song's drumless outro
+  28.1–30.1  the beat returns · the kids sparring in gold gloves · a combination under the sign ·
+             the uppercut
+  30.1–37.9  the uppercut holds · burn to white → the no-gi team; the camera pulls back and the
+             octagon closes around them · the gi team inside it · the octagon settles and the badge
+             builds itself: banner, COMBAT, 040, the stars · DEURNE · the song's drumless outro
 
-Footage and photos are read from footage/ (the draft release 'footage'; never in git). The
-newer clips live in footage/new/.
+The grade is edits/look040.py. Footage and photos are read from footage/ (the draft release
+'footage'; never in git); the newer clips live in footage/new/.
 
     python edits/showcase.py                       # renders/040COMBAT_showcase_9x16.mp4 (+ _no-music)
     python edits/showcase.py --stills 0.5 9.6 --scale 0.5
@@ -41,8 +39,11 @@ from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from afterfilm import fx, matte, media  # noqa: E402
+sys.path.insert(0, str(ROOT / "edits"))
+from afterfilm import brand, fx, gfx, matte, media  # noqa: E402
 from afterfilm.timeline import Clip, FrameBuffer, Overlay, Shot, Timeline, VideoSource  # noqa: E402
+import logo_art  # noqa: E402
+import look040  # noqa: E402
 
 FOOT = ROOT / "footage"
 MUSIC = ROOT / "music" / "Everyday_Hustle.m4a"
@@ -62,7 +63,7 @@ def vb(t0, k):
     return t0 + k * BEAT
 
 
-V_LAND = BAR                                 # 2.006: the light lands
+V_LAND = BAR                                 # 2.006: through the door, on the bar line
 V_KICK = 1.5 * BAR                           # 3.009: the kick, on the first vocal downbeat (song bar 8)
 V_PAUSE = V_KICK + 3 * BAR                   # 9.026: the intro stops on a bar line
 V_DROP = V_PAUSE + 2 * BEAT                  # 10.029
@@ -70,15 +71,18 @@ V_BREAK = V_DROP + 5 * BAR                   # 20.057: the people
 V_808 = V_BREAK + 3 * BAR                    # 26.074
 V_RETURN = V_808 + BAR                       # 28.080
 V_CARD = V_RETURN + BAR                      # 30.086: the uppercut
-V_TEAM = V_CARD + 2 * BEAT                   # 31.089: the teams
-DURATION = V_TEAM + 3.4
+V_TEAM = V_CARD + 2 * BEAT                   # 31.089: the team
+PB0, PB1 = vb(V_TEAM, 1.5), vb(V_TEAM, 3.5)  # the pull-back into the octagon
+V_GI = vb(V_TEAM, 4.0)                       # the gi team, inside it
+U0 = vb(V_GI, 2.5)                           # the badge builds
+DURATION = U0 + 3.6
 
 # music: (video start, song start, song end, gain dB, fade in s, fade out s)
 MUSIC_PLAN = [(0.0, SB(6.5), SB(11), 3.0, 0.6, 0.012),
               (V_DROP, SB(32), SB(37), 0.0, 0.012, 0.012),
               (V_BREAK, SB(52), SB(55), 2.0, 0.012, 0.012),
               (V_808, SB(59), SB(61) + 0.35, 1.0, 0.012, 0.35),
-              (V_CARD, SB(106), SB(106) + DURATION - V_CARD, 0.0, 0.04, 1.6)]
+              (V_CARD, SB(106), SB(106) + DURATION - V_CARD, 0.0, 0.04, 1.8)]
 
 # ── sources ──────────────────────────────────────────────────────────────────
 _SRC = {}
@@ -89,8 +93,8 @@ SOFT = "hqdn3d=2.5:2:5:4"                     # the WhatsApp-quality clips
 
 def src(name):
     if name not in _SRC:
-        _SRC[name] = VideoSource(str(FOOT / name), rescue=False,
-                                 extra_pre=DENOISE.get(name, SOFT if name.startswith("new/") else None))
+        soft = SOFT if name.startswith("new/") and "fill-in" not in name else None
+        _SRC[name] = VideoSource(str(FOOT / name), rescue=False, extra_pre=DENOISE.get(name, soft))
     return _SRC[name]
 
 
@@ -110,35 +114,13 @@ class StillSource:
         return FrameBuffer(out[None], t0, fps)
 
 
-LUMA = fx.LUMA
-
-
-def measure(frames):
-    """Per-shot match before the look: white balance on near-neutral midtones (walls, mats,
-    gis), black and white points, and a common exposure."""
-    idx = np.linspace(0, len(frames) - 1, min(8, len(frames))).astype(int)
-    small = np.stack([cv2.resize(frames[i], (96, 170), interpolation=cv2.INTER_AREA) for i in idx]).astype(np.float32) / 255
-    px = small.reshape(-1, 3)
-    y = px @ LUMA
-    ch = px.max(1) - px.min(1)
-    m = (y > 0.15) & (y < 0.85) & (ch < 0.12)
-    sel = px[m] if m.mean() > 0.03 else px[(y > 0.1) & (y < 0.9)]
-    mean = sel.mean(0)
-    gain = np.clip((mean @ LUMA / mean) ** 0.8, 0.8, 1.25).astype(np.float32)
-    yg = (px * gain) @ LUMA
-    lo, mid, hi = np.percentile(yg, [1.0, 50, 99.6])
-    black = max(0.0, lo - 0.01) * 0.85
-    scale = float(np.clip(0.97 / max(hi - black, 1e-3), 1.0, 1.35))
-    expo = float(np.clip(np.log2(0.32 / max((mid - black) * scale, 1e-3)) * 0.5, -0.4, 0.5))
-    return dict(gain=gain, black=float(black), scale=scale, expo=expo)
-
-
-NOMATCH = dict(gain=np.ones(3, np.float32), black=0.0, scale=1.0, expo=0.0)
+NOMATCH = look040.NOMATCH
 
 
 class MClip(Clip):
-    """A clip with per-frame framing (staccato zoom steps, keyed tracks), light trails and the
-    people matte, which the grade uses to sit the room lower. It measures itself when decoded."""
+    """A clip with per-frame framing (staccato zoom steps, keyed tracks, or a framing function),
+    light trails and the people matte, which the grade uses to sit the room lower. It measures
+    itself (look040.measure) when decoded."""
 
     def setup(self, zsteps=None, track=None, zfn=None, echo_fn=None, use_matte=True):
         self.zsteps, self.trackt, self.zfn, self.echo_fn = zsteps, track, zfn, echo_fn
@@ -150,7 +132,7 @@ class MClip(Clip):
         fresh = self.buf is None
         super().prepare(dur, fps, size)
         if fresh and "match" not in self.grade:
-            self.grade = {**self.grade, "match": measure(self.buf.frames)}
+            self.grade = {**self.grade, "match": look040.measure(self.buf.frames)}
         if fresh and self.abuf is None and self.use_matte:
             if isinstance(self.source, StillSource):
                 self.abuf = matte.still(self.source.img)
@@ -235,61 +217,19 @@ def photo(name, zoom=(1.0, 1.0), center=(0.5, 0.5), note="", decode_zoom=None, z
 
 
 # ── the look ─────────────────────────────────────────────────────────────────
-# Arma's cast, measured tone by tone on its reference film (chroma offsets per luma decile)
-TINT_L = np.linspace(0.05, 0.95, 10).astype(np.float32)
-TINT = np.array([[5.0, -1.2, -2.7], [13.5, -2.4, -15.6], [16.5, -2.7, -22.3], [18.6, -3.1, -24.1],
-                 [18.1, -2.8, -25.6], [17.3, -2.8, -23.5], [13.5, -1.9, -20.7], [10.7, -1.2, -19.4],
-                 [6.4, -0.2, -16.9], [7.4, -0.7, -14.9]], np.float32) / 255
-BLACK = np.array([0.020, 0.015, 0.012], np.float32)       # warm charcoal, never pure black
+GRADE = dict(sat=0.75, skin_keep=1.1, contrast=0.32, high_tint=(0.034, 0.014, -0.031),
+             shadow_tint=(-0.008, 0.0035, 0.0115), expo=-0.22, mist=0.26, sep_drop=1.0, sep_desat=0.45,
+             toe=0.014, cool_cut=0.4, green_cut=0.3, white=0.96)
+INK = np.array([0.014, 0.013, 0.013], np.float32)              # the film's black
+CREAM = np.array([1.0, 0.965, 0.90], np.float32)
 
 
-class WarmLook(fx.Look):
-    """One warm, low-key grade for every shot.
+class Look(fx.Look):
+    """look040's grade (match → separation → hue-weighted colour → print curve → split tone →
+    diffusion) with the film's settings."""
 
-    match (white balance, black/white points, exposure) → hue-selective saturation (skin, gold
-    and amber keep it, cool colours are muted) → the room sits lower than the athletes (alpha,
-    the people matte) → a filmic print curve → Arma's cast, tone by tone → warm charcoal blacks.
-    """
-
-    def __init__(self, w, h):
-        super().__init__(w, h)
-        yy = np.linspace(0, 1, h, dtype=np.float32)[:, None]
-        self.ceiling = (1 - fx.smoothstep(0.0, 0.3, yy)).astype(np.float32)
-
-    def grade(self, img, match=None, alpha=None, exposure=0.0, contrast=0.32, drop=1.5, lift=0.2, clar=0.32,
-              top=0.25, sat_w=1.05, sat_c=0.5, tint=0.6, **_):
-        x = np.clip(img, 0, 1).astype(np.float32)
-        e = exposure - 0.35
-        if match:
-            x = np.clip((x * match["gain"] - match["black"]) * match["scale"], 0, 1)
-            e += match["expo"]
-        y = x @ LUMA
-        hsv = cv2.cvtColor(x, cv2.COLOR_RGB2HSV)
-        warmh = np.clip(1 - np.minimum(np.abs(((hsv[..., 0] - 28 + 180) % 360) - 180) / 38, 1), 0, 1)
-        chroma = (x - y[..., None]) * (sat_c + (sat_w - sat_c) * warmh)[..., None]
-        h, w = y.shape
-        k = w / 1080
-        if alpha is not None and drop > 0:
-            a = alpha.astype(np.float32)
-            am = cv2.GaussianBlur(a, (0, 0), 12 * k)
-            small = cv2.resize(a, (max(w // 8, 1), max(h // 8, 1)), interpolation=cv2.INTER_AREA)
-            halo = cv2.resize(cv2.GaussianBlur(small, (0, 0), 110 * k / 8), (w, h), interpolation=cv2.INTER_LINEAR)
-            light = np.clip(0.6 * am + 0.7 * halo, 0, 1)
-            room = fx.smoothstep(0.35, 0.9, y)
-            f = 2.0 ** (-(drop * (0.55 + 0.45 * room)) * (1 - light) + lift * am)
-            if self.ceiling.shape[0] == h:
-                f = f * (1 - top * self.ceiling * (1 - am))
-            y2 = (y ** 2.2 * f) ** (1 / 2.2)
-            chroma = chroma * (y2 / np.maximum(y, 1e-4))[..., None] ** 0.8
-            base = cv2.GaussianBlur(y2, (0, 0), 9 * k)
-            y = y2 + (y2 - base) * clar * am
-        y = np.clip(y * 2.0 ** e, 0, 1)
-        yt = fx.filmic(y)
-        yt = np.clip(yt + contrast * (yt * yt * (3 - 2 * yt) - yt), 0, 1)
-        chroma = chroma * (yt / np.maximum(y, 1e-4))[..., None] ** 0.6
-        cast = np.stack([np.interp(yt, TINT_L, TINT[:, c]) for c in range(3)], -1) * tint
-        out = np.clip(yt[..., None] + chroma + cast, 0, 1)
-        return (BLACK + out * (1 - BLACK)).astype(np.float32)
+    def grade(self, img, **kw):
+        return look040.grade(img, look=GRADE, **kw)
 
 
 # ── transitions ──────────────────────────────────────────────────────────────
@@ -310,12 +250,9 @@ def t_smear_v(a, b, p, ctx, direction=1):
     return np.clip(out * (1 + 0.12 * k), 0, 1)
 
 
-CREAM = np.array([1.0, 0.965, 0.90], np.float32)
-
-
 def t_burn(a, b, p, ctx):
-    """The reference's chapter change: the outgoing shot overexposes into warm white, a few frames
-    of pure light, and the incoming shot comes back out of it, washed, then settles."""
+    """A chapter change: the outgoing shot overexposes into warm white, a few frames of pure
+    light, and the incoming shot comes back out of it."""
     if p < 0.5:
         img, k = a, (p / 0.5) ** 1.6
     else:
@@ -323,8 +260,7 @@ def t_burn(a, b, p, ctx):
     if k < 0.01:
         return img
     lit = np.clip(img * (1 + 3.2 * k), 0, 1)
-    out = lit * (1 - k ** 1.5) + CREAM * k ** 1.5
-    return np.clip(out, 0, 1)
+    return np.clip(lit * (1 - k ** 1.5) + CREAM * k ** 1.5, 0, 1)
 
 
 fx.TRANSITIONS["smear_up"] = lambda a, b, p, c: t_smear_v(a, b, p, c, direction=-1)
@@ -353,60 +289,142 @@ def t_in_for(speed, lt_hit, src_hit):
 
 
 def ease_snap(lt, amt, t=0.45, drift=0.025):
-    """A gentle push that settles, then keeps drifting."""
     return 1.0 + amt * (1 - fx.expo_out(lt / t)) + drift * lt
 
 
-# ── the opening ──────────────────────────────────────────────────────────────
-STRIKES = {14: 0.85, 15: 0.4, 27: 1.0, 28: 0.5, 38: 0.7, 47: 0.95, 48: 0.6, 54: 1.0}
+# ── the badge, on screen ─────────────────────────────────────────────────────
+RIM_PT = 230.444                             # the logo's width, page points
+BADGE_W = 0.66                               # its width on screen at rest, of the frame width
 
 
-def backlight(n):
-    lv = 0.0
-    for f, s in STRIKES.items():
-        if f <= n:
-            lv = max(lv, s * np.exp(-(n - f) / 2.2))
-    return float(lv)
+def _place(rgba, P, S, cx, cy, w, h):
+    """A page-space RGBA layer (P × P px, straight alpha) to screen: scale S about the page
+    centre, centred at (cx, cy). Returns premultiplied rgb and alpha."""
+    m = np.float32([[S, 0, cx - S * P / 2], [0, S, cy - S * P / 2]])
+    pre = np.concatenate([rgba[..., :3] * rgba[..., 3:4], rgba[..., 3:4]], -1)
+    out = cv2.warpAffine(pre, m, (w, h), flags=cv2.INTER_AREA if S < 1 else cv2.INTER_LINEAR,
+                         borderMode=cv2.BORDER_CONSTANT)
+    return out[..., :3], out[..., 3:4]
 
 
-class Opening:
-    """Out of black the light comes on behind Milosz and his partner: silhouettes, rimmed where
-    the light wraps them. On the bar line it lands; three punch-ins on the eighth notes; the kick
-    lands on the downbeat in slow motion, trailing light."""
+def _place_mask(mask, P, S, cx, cy, w, h):
+    m = np.float32([[S, 0, cx - S * P / 2], [0, S, cy - S * P / 2]])
+    return cv2.warpAffine(mask, m, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
 
-    def __init__(self):
-        sp = ramp([(0.0, 0.45), (V_LAND, 1.0), (V_KICK, 0.28), (V_KICK + 0.56, 1.0)])
-        self.clip = clip("kickboxing.drills.mp4", t_in_for(sp, V_KICK, 21.39), speed=sp,
-                         zsteps=[(0, 1.12, 0.55, 0.47, -0.03), (V_LAND, 1.0, 0.5, 0.5),
-                                 (vb(V_LAND, 0.5), 1.2, 0.68, 0.42), (vb(V_LAND, 1.0), 1.42, 0.70, 0.40),
-                                 (vb(V_LAND, 1.5), 1.66, 0.71, 0.38), (V_KICK, 1.04, 0.5, 0.5, 0.05)],
-                         echo_fn=lambda lt: 0.6 * fx.smoothstep(V_KICK, V_KICK + 0.08, lt) * (1 - fx.smoothstep(V_KICK + 0.6, V_KICK + 0.8, lt)),
-                         decode_zoom=1.7, note="the light comes on behind Milosz; punch-ins; the kick lands")
+
+def _over(img, rgb_pre, a, k=1.0):
+    return img * (1 - a * k) + rgb_pre * k
+
+
+# ── the opening: the octagon door ────────────────────────────────────────────
+DRAW = (0.22, 0.86)                          # the gold ring draws itself, from the top round to the bottom
+FILL = (0.50, 1.05)                          # the footage comes up inside it
+FLY0 = 1.42                                  # the fly-through starts
+K_FLY = 4.4                                  # how far the octagon grows: past the 4:5 window
+F_REST = 0.55                                # the footage's scale inside the octagon at rest
+RING_R = 95.0                                # the ring's outer corner radius, page points
+
+
+def _zoom_blur(layer, cx, cy, ratio, n):
+    """A zoom blur: the layer averaged over scales 1 → 1/ratio about (cx, cy), i.e. over the part
+    of the frame's exposure when it was still smaller."""
+    if n <= 1:
+        return layer
+    h, w = layer.shape[:2]
+    acc = np.zeros_like(layer)
+    for sc in ratio ** (-np.linspace(0.0, 1.0, n)):
+        m = np.float32([[sc, 0, cx * (1 - sc)], [0, sc, cy * (1 - sc)]])
+        out = cv2.warpAffine(layer, m, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+        acc += out.reshape(acc.shape)
+    return acc / n
+
+
+class Door:
+    """Out of black the gold octagon draws itself and the footage comes up inside it (the District
+    film's glyph door, made 040's); on the bar line the camera flies through it. Inside the door the
+    picture is held small, so the two of them read in the octagon; as the camera moves in, the
+    picture grows to fill the frame and the ring flies past. The kickboxing shot plays on through
+    the landing, the punch-ins and the kick, in one continuous clip."""
+    P = 3200
+
+    def __init__(self, w, h):
+        self.w, self.h = w, h
+        self.cx, self.cy = w / 2, h / 2
+        self.ring, self.win = logo_art.full_ring(self.P)
+        self.S0 = BADGE_W * w / (RIM_PT / 300 * self.P)        # page px → screen px at rest
+        self.win_half = self.win.sum(1).max() / 2 * self.S0     # the window's half-width on screen at rest
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        self.theta = np.abs(np.arctan2(xx - self.cx, -(yy - self.cy))) / np.pi    # 0 at the top, 1 at the bottom
+        sp = ramp([(0.0, 0.45), (V_LAND, 1.0), (V_KICK, 0.28), (V_KICK + 0.62, 1.0)])
+
+        def framing(lt):
+            if lt < V_LAND:
+                return 1.0, 0.5, 0.5
+            for t0, z, cx, cy in ((vb(V_LAND, 1.5), 1.66, 0.71, 0.38), (vb(V_LAND, 1.0), 1.42, 0.70, 0.40),
+                                  (vb(V_LAND, 0.5), 1.2, 0.68, 0.42)):
+                if t0 <= lt < V_KICK:
+                    return z, cx, cy
+            if lt >= V_KICK:
+                return 1.04 * (1 + 0.05 * (lt - V_KICK)), 0.5, 0.5
+            return 1.0, 0.5, 0.5
+        self.clip = clip("kickboxing.drills.mp4", t_in_for(sp, V_KICK, 21.39), speed=sp, zfn=framing, decode_zoom=1.7,
+                         echo_fn=lambda lt: 0.75 * fx.smoothstep(V_KICK, V_KICK + 0.08, lt) * (1 - fx.smoothstep(V_KICK + 0.65, V_KICK + 0.85, lt)),
+                         note="the octagon door → punch-ins → the kick lands")
+
+    def k_at(self, lt):
+        """The octagon's scale (1 = at rest)."""
+        if lt < FLY0:
+            return 0.94 + 0.06 * fx.expo_out(fx.window(lt, DRAW[0], FILL[1])) + 0.02 * max(lt - FILL[1], 0)
+        k0 = 1.0 + 0.02 * (FLY0 - FILL[1])
+        return k0 * (K_FLY / k0) ** (fx.window(lt, FLY0, V_LAND) ** 2.2)
+
+    def f_at(self, k):
+        """The footage's scale for an octagon at scale k: it travels with the octagon, eases into
+        full frame, and always covers the window."""
+        x = F_REST * k
+        soft = x / (1 + x ** 6) ** (1 / 6)
+        cover = (self.win_half * k + 3) / (self.w / 2)
+        return float(min(1.0, max(soft, cover)))
 
     def picture(self, shot, lt, tl):
-        w, h = tl.w, tl.h
-        if lt < 0.25:
-            return np.broadcast_to(BLACK, (h, w, 3)).copy()
+        w, h, cx, cy = self.w, self.h, self.cx, self.cy
+        if lt < DRAW[0]:
+            return np.broadcast_to(INK, (h, w, 3)).copy()
         img = self.clip.frame(lt, shot.dur, tl.look, out_size=(w, h))
         if lt >= V_LAND:
             return img
-        a = self.clip.alpha(lt, shot.dur, (w, h))
-        L = backlight(int(lt * FPS))
-        k = w / 1080
-        a_s = cv2.GaussianBlur(a, (0, 0), 1.5 * k)[..., None]
-        rim = np.clip(a - cv2.GaussianBlur(a, (0, 0), 7 * k), 0, 1)[..., None] * 2.0
-        bg = img * (0.02 + 0.98 * L)
-        glow = cv2.GaussianBlur(bg, (0, 0), 24 * k) * 0.3 * L
-        subj = img * 0.05 + rim * CREAM * 0.8 * L
-        return np.clip(BLACK + bg * (1 - a_s) + subj * a_s + glow, 0, 1)
+        k, kp = self.k_at(lt), self.k_at(lt - 0.5 / FPS)
+        f, fp = self.f_at(k), self.f_at(kp)
+        # the picture, held inside the octagon (anchored a little high, on their faces)
+        if f < 0.999:
+            ay = 0.5 - 0.035 * (1 - f) / (1 - F_REST)
+            m = np.float32([[f, 0, cx - f * 0.5 * w], [0, f, cy - f * ay * h]])
+            img = cv2.warpAffine(img, m, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+            img = _zoom_blur(img, cx, cy, f / fp, int(np.clip(0.5 * w * (f / fp - 1) / 1.5, 1, 16)))
+        # the ring and its window at this frame's scale, zoom-blurred over the shutter
+        S = self.S0 * k
+        win = _place_mask(self.win, self.P, S, cx, cy, w, h)
+        rgb, a = _place(self.ring, self.P, S, cx, cy, w, h)
+        ratio = k / kp
+        n = int(np.clip(RING_R * self.P / 300 * S * (ratio - 1) / 1.5, 1, 24))
+        if n > 1:
+            ring = _zoom_blur(np.concatenate([rgb, a], -1), cx, cy, ratio, n)
+            rgb, a = ring[..., :3], ring[..., 3:4]
+            win = _zoom_blur(win, cx, cy, ratio, n)
+        # the ring draws itself: both ways from the top, meeting at the bottom
+        d = fx.ease_in_out(fx.window(lt, *DRAW))
+        draw = np.clip((d * 1.04 - self.theta) / 0.04, 0, 1)[..., None]
+        fill = fx.ease_in_out(fx.window(lt, *FILL))
+        out = INK + (img - INK) * (win[..., None] * fill)
+        return np.clip(out * (1 - a * draw) + rgb * draw, 0, 1)
 
 
-# ── the hook freezes ─────────────────────────────────────────────────────────
+# ── a frame that holds ───────────────────────────────────────────────────────
 class Hold:
-    """A frame that freezes on a beat and holds while the room falls away around the people
-    and the camera keeps drifting in. Used for Bilal's hook and for the last uppercut."""
+    """A frame that freezes on a beat and holds while the room falls away around the people and
+    the camera keeps drifting in. Bilal's hook (into the slit) and the last uppercut."""
 
-    def __init__(self, clip, start, t_freeze, push=0.06, centre=(0.52, 0.42), dim=0.8):
+    def __init__(self, clip, start, t_freeze, push=0.06, centre=(0.5, 0.5), dim=0.8):
         self.clip, self.start, self.tf = clip, start, t_freeze
         self.push, self.centre, self.dim = push, centre, dim
 
@@ -419,7 +437,7 @@ class Hold:
         img = self.clip.frame(fz, shot.dur, tl.look, out_size=(w, h))
         a = cv2.GaussianBlur(self.clip.alpha(fz, shot.dur, (w, h)), (0, 0), 4)[..., None]
         fall = fx.ease_out(fx.window(k, 0.05, 0.6)) * self.dim
-        out = BLACK + (img - BLACK) * (1 - fall * (1 - a))
+        out = INK + (img - INK) * (1 - fall * (1 - a))
         return fx.reframe(out, 1.0 + self.push * fx.ease_out(k / 1.2), *self.centre)
 
 
@@ -429,10 +447,11 @@ class Diptych:
 
     def __init__(self, w, h):
         self.w, self.h = w, h
+        g = {"match": NOMATCH, "exposure": 0.12, "sep_drop": 0.5}
         self.top = MClip(StillSource("Milosz.Celebration.jpg"), 0.0, speed=0.0, zoom=(1.0, 1.04), center=(0.42, 0.33),
-                         decode=(w * 2, h), grade={"match": NOMATCH, "exposure": 0.1, "drop": 0.6}).setup()
+                         decode=(w * 2, h), grade=dict(g)).setup()
         self.bot = MClip(StillSource("Imre.Celebration.jpg"), 0.0, speed=0.0, zoom=(1.0, 1.04), center=(0.5, 0.28),
-                         decode=(w * 2, h), grade={"match": NOMATCH, "exposure": 0.1, "drop": 0.6}).setup()
+                         decode=(w * 2, h), grade=dict(g)).setup()
         self.clips = [self.top, self.bot]
 
     def render(self, shot, lt, tl):
@@ -442,123 +461,307 @@ class Diptych:
         b = self.bot.frame(lt, shot.dur, tl.look, out_size=(w, h - hh))
         e = fx.expo_out(min(lt / self.SLIDE, 1.0))
         dy = int(round((1 - e) * hh))
-        img = np.broadcast_to(BLACK, (h, w, 3)).copy()
+        img = np.broadcast_to(INK, (h, w, 3)).copy()
         if dy < hh:
             img[0:hh - dy] = a[dy:hh]
             img[hh + dy:h] = b[0:h - hh - dy]
-        img[hh - 3:hh + 3] = BLACK
+        img[hh - 3:hh + 3] = INK
         return img
 
 
-# ── the end: the two teams ───────────────────────────────────────────────────
-class Teams:
-    """No-gi above, gi below, both standing under the wall sign. They come out of the white
-    together and drift gently against each other; the film fades to black on them."""
-    GAP = 8
+# ── the end: the team, the octagon closes around them, the badge builds ─────
+def _gym_backdrop(w, h):
+    """The empty gym (Gym.jpg), out of focus and low, its ceiling tubes glowing: the ground the
+    badge stands on, barely there."""
+    im = np.asarray(ImageOps.exif_transpose(Image.open(FOOT / "Gym.jpg")).convert("RGB")).astype(np.float32) / 255
+    ih, iw = im.shape[:2]
+    s = h * 1.1 / ih
+    big = cv2.resize(im, (int(iw * s), int(h * 1.1)), interpolation=cv2.INTER_AREA)
+    x0 = int(0.42 * big.shape[1] - w * 0.55)
+    crop = big[int(h * 0.05):int(h * 0.05) + h, max(0, x0):max(0, x0) + w]
+    k = w / 1080
+    y = crop @ look040.LUMA
+    hot = cv2.GaussianBlur(np.clip((y - 0.82) / 0.18, 0, 1), (0, 0), 26 * k)
+    soft = cv2.GaussianBlur(crop, (0, 0), 14 * k)
+    g = look040.grade(soft, look={**GRADE, "mist": 0.0, "expo": -2.9, "toe": 0.0, "sat": 0.5})
+    g = g + hot[..., None] * np.array([1.0, 0.86, 0.66], np.float32) * 0.07
+    yy = np.linspace(0, 1, h, dtype=np.float32)[:, None, None]
+    g = g * (0.5 + 0.5 * np.exp(-((yy - 0.42) / 0.5) ** 2)) * 0.36        # barely there: ~5% grey at most
+    return np.clip(g, 0, 1).astype(np.float32)
+
+
+class Elem:
+    """A screen-space piece of the badge (premultiplied rgb + alpha, cropped to its box)."""
+
+    def __init__(self, rgb_pre, a):
+        ys, xs = np.nonzero(a[..., 0] > 1e-3)
+        if len(xs) == 0:
+            self.empty = True
+            return
+        self.empty = False
+        pad = 2
+        self.y0, self.y1 = max(ys.min() - pad, 0), ys.max() + pad + 1
+        self.x0, self.x1 = max(xs.min() - pad, 0), xs.max() + pad + 1
+        self.rgb = rgb_pre[self.y0:self.y1, self.x0:self.x1].copy()
+        self.a = a[self.y0:self.y1, self.x0:self.x1].copy()
+        self.cx, self.cy = (self.x0 + self.x1) / 2, (self.y0 + self.y1) / 2
+
+    def draw(self, img, k=1.0, dy=0.0, scale=1.0, clip=None, xclip=None):
+        """Composite over img. clip: (y0, y1) screen rows it may show in; xclip: (x0, x1)."""
+        if self.empty or k <= 0.002 or scale <= 0.01:
+            return img
+        H, W = img.shape[:2]
+        rgb, a = self.rgb, self.a
+        if abs(scale - 1) > 1e-3 or abs(dy) > 0.25:
+            hh, ww = a.shape[:2]
+            m = np.float32([[scale, 0, ww / 2 * (1 - scale)], [0, scale, hh / 2 * (1 - scale) + dy]])
+            rgb = cv2.warpAffine(rgb, m, (ww, hh), flags=cv2.INTER_LINEAR)
+            a = cv2.warpAffine(a, m, (ww, hh), flags=cv2.INTER_LINEAR)[..., None]
+        y0, y1, x0, x1 = self.y0, self.y1, self.x0, self.x1
+        sub_a = a * k
+        if clip is not None:
+            rows = np.arange(y0, y1)[:, None, None]
+            sub_a = sub_a * ((rows >= clip[0]) & (rows < clip[1]))
+        if xclip is not None:
+            cols = np.arange(x0, x1)[None, :, None]
+            sub_a = sub_a * np.clip(np.minimum(cols - xclip[0], xclip[1] - cols) / 1.5 + 0.5, 0, 1)
+        region = img[y0:y1, x0:x1]
+        img[y0:y1, x0:x1] = region * (1 - sub_a) + rgb * (sub_a / np.maximum(a, 1e-6)) * (a > 1e-6)
+        return img
+
+
+class Finale:
+    """The uppercut has held; out of a burn to white the no-gi team fills the frame. The camera
+    pulls back and the gold octagon closes around them; inside it, on the beat, the gi team. The
+    octagon settles to the size of the badge, the window goes black, and the badge builds itself
+    from the logo's own layers: the banner opens, COMBAT rises letter by letter, 040 drops in, the
+    stars land on the eighth notes, and DEURNE settles underneath. The empty gym is there behind
+    it, barely."""
+    P = 1800
+    K_MID = 1.75                              # the octagon's scale while the teams are in it
 
     def __init__(self, w, h):
         self.w, self.h = w, h
-        ph = (h - self.GAP) // 2
-        self.ph = ph
-        self.top = photo("Of.voor.communityy.jpg", zfn=lambda lt: (1.0 + 0.035 * fx.ease_out(lt / 3.4), 0.5, 0.44),
-                         use_matte=False, exposure=0.15, note="the no-gi team under the wall sign")
-        self.bot = photo("new/Gi.team.jpg", zfn=lambda lt: (1.04 - 0.035 * fx.ease_out(lt / 3.4), 0.5, 0.50),
-                         decode_zoom=1.1, use_matte=False, exposure=0.15, note="the gi team under the wall sign")
-        self.clips = [self.top, self.bot]
+        self.cx, self.cy = w / 2, h * 0.47
+        self.S0 = BADGE_W * w / (RIM_PT / 300 * self.P)
+        self.L = logo_art.layers(self.P)
+        self.ring, self.win = logo_art.full_ring(self.P)
+        self.rim_oct, self.rim_wings = logo_art.rim_parts(self.P)
+        self.backdrop = _gym_backdrop(w, h)
+        self.nogi = photo("Of.voor.communityy.jpg", zfn=lambda lt: (1.0 + 0.04 * min(lt / 2.0, 1.0), 0.5, 0.5),
+                          use_matte=False, exposure=0.12, note="the no-gi team under the wall sign")
+        self.win_half = self.win.sum(1).max() / 2 * self.S0     # the window's half-width on screen at rest
+        self.gi = photo("new/Gi.team.jpg", zoom=(1.12, 1.15), center=(0.5, 0.47), decode_zoom=1.2, use_matte=False,
+                        exposure=0.12, note="the gi team, inside the octagon")
+        self.clips = [self.nogi, self.gi]
+        self.font = brand.font("BarlowCondensed-SemiBold", 0.030 * h)
+        self.type_layer = gfx.Layer(w, h)
+        # the badge at rest, screen space
+        R = lambda rgba: _place(rgba, self.P, self.S0, self.cx, self.cy, w, h)  # noqa: E731
+        self.rest = {n: R(self.L[n]) for n in ("body", "banner", "bits", "o40", "combat", "stars")}
+        self.rest["ring"] = R(self.ring)
+        self.rest["rim_oct"], self.rest["rim_wings"] = R(self.rim_oct), R(self.rim_wings)
+        _, frame = logo_art.ring_and_frame(self.P)
+        self.rest["frame"] = R(frame)
+        self.win_rest = _place_mask(self.win, self.P, self.S0, self.cx, self.cy, w, h)[..., None]
+        self.letters = self._split("combat")
+        self.digits = self._split("o40")
+        self.starl = self._split("stars")
+        s = self.S0 * self.P / 300
+        bx0, by0, bx1, by1 = logo_art.BANNER_PT
+        self.banner_rows = (self.cy + (by0 + 1.5 - 150) * s, self.cy + (by1 - 1.5 - 150) * s)
+        self.banner_half = (bx1 - bx0) / 2 * s + 10
+        self.badge_bottom = self.cy + (242.44 - 150) * s
 
-    def render(self, shot, lt, tl):
-        w, h, ph = self.w, self.h, self.ph
-        img = np.broadcast_to(BLACK, (h, w, 3)).copy()
-        img[:ph] = self.top.frame(lt, shot.dur, tl.look, out_size=(w, ph))
-        img[h - ph:] = self.bot.frame(lt, shot.dur, tl.look, out_size=(w, ph))
-        fade = fx.ease_in(fx.window(lt, shot.dur - 0.9, shot.dur - 0.05))
-        return BLACK + (img - BLACK) * (1 - fade)
+    def _split(self, name):
+        from scipy import ndimage
+        rgb, a = self.rest[name]
+        lab, n = ndimage.label(a[..., 0] > 0.02, structure=np.ones((3, 3)))
+        parts = []
+        for i in range(1, n + 1):
+            m = ndimage.binary_dilation(lab == i, iterations=2)[..., None].astype(np.float32)
+            e = Elem(rgb * m, a * m)
+            if not e.empty and e.a.size > 40:
+                parts.append(e)
+        return sorted(parts, key=lambda e: e.cx)
+
+    def _layer(self, img, name, k=1.0, xclip=None):
+        rgb, a = self.rest[name]
+        if xclip is not None:
+            cols = np.arange(self.w)[None, :, None]
+            a2 = a * np.clip(np.minimum(cols - xclip[0], xclip[1] - cols) / 1.5 + 0.5, 0, 1)
+            return img * (1 - a2 * k) + rgb * (a2 / np.maximum(a, 1e-6)) * (a > 1e-6) * k
+        return _over(img, rgb, a, k)
+
+    def k_at(self, t):
+        """The octagon's scale: it closes in from outside the frame, holds round the teams while
+        drifting back, and settles to the badge's size just before it builds."""
+        if t < PB1:
+            return 5.4 * (self.K_MID / 5.4) ** fx.ease_in_out(fx.window(t, PB0, PB1))
+        s0 = U0 - 0.65
+        k1 = self.K_MID * (1 - 0.03 * fx.window(t, PB1, s0))
+        return k1 * (1 / k1) ** fx.ease_in_out(fx.window(t, s0, U0 + 0.05))
+
+    def f_at(self, k):
+        """The no-gi photo's scale: full frame until the window is about to cut into it, then just
+        wider than the window."""
+        return float(min(1.0, (self.win_half * k * 1.06 + 4) / (self.w / 2)))
+
+    def picture(self, shot, lt, tl):
+        w, h, cx, cy = self.w, self.h, self.cx, self.cy
+        t = shot.start + lt
+        if t < PB0:
+            return self.nogi.frame(lt, shot.dur, tl.look, out_size=(w, h))
+        k = self.k_at(t)
+        bg_k = fx.ease_in_out(fx.window(t, PB0 + 0.1, PB1 + 0.25))
+        out = INK + (self.backdrop - INK) * bg_k
+        if abs(k - 1) > 1e-3:
+            S, P = self.S0 * k, self.P
+            for lay in (self.rim_oct, self.L["body"]):
+                out = _over(out, *_place(lay, P, S, cx, cy, w, h))
+            win = _place_mask(self.win, P, S, cx, cy, w, h)[..., None]
+            ring = _place(self.ring, P, S, cx, cy, w, h)
+        else:
+            out = _over(out, *self.rest["rim_oct"])
+            out = _over(out, *self.rest["body"])
+            win, ring = self.win_rest, self.rest["ring"]
+        # the photo inside the window
+        u = t - U0
+        if t < V_GI:
+            f = self.f_at(k)
+            q = (1 - f) / (1 - self.f_at(self.K_MID))
+            ph = self.nogi.frame(lt, shot.dur, tl.look, out_size=(w, h))
+            ay, ty = 0.5 - 0.06 * q, h / 2 + (cy - h / 2) * q          # the team, not the floor, in the window
+            m = np.float32([[f, 0, cx - f * 0.5 * w], [0, f, ty - f * ay * h]])
+            ph = cv2.warpAffine(ph, m, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+        else:
+            n = int(self.win_half * 2 * k) + 10
+            n += n % 2
+            g = self.gi.frame(lt, shot.dur, tl.look, out_size=(n, n))
+            ph = np.broadcast_to(INK, (h, w, 3)).copy()
+            y0, x0 = int(round(cy - n / 2)), int(round(cx - n / 2))
+            ph[max(y0, 0):y0 + n, max(x0, 0):x0 + n] = g[max(-y0, 0):, max(-x0, 0):][:h - max(y0, 0), :w - max(x0, 0)]
+        wk = win * (1 - fx.ease_in_out(fx.window(u, 0.0, 0.45)))
+        out = out * (1 - wk) + ph * wk
+        out = _over(out, *ring)
+        if u < 0:
+            return np.clip(out, 0, 1)
+        # the badge builds
+        eb = fx.expo_out(fx.window(u, 0.30, 0.68))
+        half = self.banner_half * eb
+        xc = (cx - half, cx + half)
+        for name in ("rim_wings", "banner", "frame", "bits"):
+            out = self._layer(out, name, xclip=xc)
+        clip_b = (int(self.banner_rows[0]), int(self.banner_rows[1]))
+        for i, L in enumerate(self.letters):
+            x = fx.expo_out(fx.window(u, 0.46 + 0.05 * i, 0.80 + 0.05 * i))
+            if x > 0:
+                out = L.draw(out, k=min(1.0, x * 1.6), dy=(1 - x) * (L.y1 - L.y0) * 1.1, clip=clip_b)
+        clip_o = (0, int(self.banner_rows[0]) - 4)
+        for i, L in enumerate(self.digits):
+            x = fx.expo_out(fx.window(u, 0.85 + 0.06 * i, 1.20 + 0.06 * i))
+            if x > 0:
+                out = L.draw(out, k=x, dy=-(1 - x) * (L.y1 - L.y0) * 0.9, clip=clip_o)
+        for i, L in enumerate(self.starl):
+            x = fx.window(u, 1.25 + 0.125 * i, 1.6 + 0.125 * i)
+            if x > 0:
+                sc = fx.ease_out(min(x * 2.4, 1.0)) * (1 + 0.06 * np.sin(np.pi * min(x * 1.2, 1.0)) * (1 - x))
+                out = L.draw(out, k=min(1.0, x * 3), scale=sc)
+        return np.clip(out, 0, 1)
+
+    def draw_type(self, t, img, tl):
+        """DEURNE, quietly, under the badge — drawn after the film pass so it stays crisp."""
+        u = t - U0
+        e = fx.ease_out(fx.window(u, 2.0, 2.7))
+        fade = 1 - fx.ease_in(fx.window(t, DURATION - 0.7, DURATION - 0.05))
+        if e <= 0:
+            return img if fade >= 1 else INK + (img - INK) * fade
+        layer = self.type_layer                 # its own layer: the timeline composites tl.layer again after this
+        layer.clear()
+        gfx.text(layer.c, "DEURNE", self.font, self.cx, self.badge_bottom + 0.06 * self.h, (236, 230, 220),
+                 0.7 * e, tracking=0.58 + 0.22 * (1 - e), align="center")
+        out = layer.over(img)
+        return INK + (out - INK) * fade
 
 
 # ── the edit ─────────────────────────────────────────────────────────────────
 def build(w=1080, h=1920):
-    look = WarmLook(w, h)
+    look = Look(w, h)
     tl = Timeline(w, h, FPS, DURATION, look)
     S = tl.add
     flashes = []                              # soft exposure flashes: (time, strength, length)
 
-    # 0 · the opening, into the kick
-    op = Opening()
-    S(Shot(0.0, vb(V_KICK, 2), render=op.picture, clips=[op.clip]))
-    flashes += [(V_LAND, 0.25, 0.12), (V_KICK, 0.45, 0.18)]
+    # 0 · the door, the punch-ins, the kick
+    door = Door(w, h)
+    S(Shot(0.0, vb(V_KICK, 2), render=door.picture, clips=[door.clip]))
+    flashes += [(V_KICK, 0.7, 0.2)]
 
     # 1 · the intro: kick → throw → her combination → pads into a double-leg → the exchange
     t = vb(V_KICK, 2) - WHIP / 2                                         # the throw lands on the beat
     sp = ramp([(0.0, 1.0), (0.38, 0.5), (0.80, 1.0)])
     S(Shot(t, vb(V_KICK, 4.5) - t, clip("Dilbrien.x.Milosz.scramble.mp4", t_in_for(sp, vb(V_KICK, 4) - t, 1.09), speed=sp,
-                                        zoom=(1.5, 1.5), track=[(0, 0.40, 0.29), (0.8, 0.43, 0.32), (1.35, 0.46, 0.40)],
+                                        zoom=(1.5, 1.5), track=[(0, 0.40, 0.29), (0.8, 0.43, 0.32), (1.35, 0.46, 0.38)],
                                         note="the throw, slowed at the top"), trans=("smear", WHIP)))
     t = vb(V_KICK, 4.5)
-    S(Shot(t, vb(V_KICK, 7) - t, clip("alternative.shot.mp4", 14.02, zoom=(1.25, 1.32), center=(0.58, 0.42),
+    S(Shot(t, vb(V_KICK, 7) - t, clip("alternative.shot.mp4", 14.02, zoom=(1.25, 1.32), center=(0.58, 0.45),
                                       note="her combination")))
     t = vb(V_KICK, 7)
     sp = ramp([(0.0, 1.0), (0.85, 0.6), (1.40, 1.0)])
-    S(Shot(t, vb(V_KICK, 10) - t, clip("action.mp4", 3.95, speed=sp, zoom=(1.0, 1.08), center=(0.5, 0.52),
+    S(Shot(t, vb(V_KICK, 10) - t, clip("action.mp4", 3.95, speed=sp, zoom=(1.08, 1.14), center=(0.5, 0.56),
                                        note="pads with the coach, into a double-leg")))
     t = vb(V_KICK, 10)
-    S(Shot(t, BEAT, clip("Milosz.Bilal.KB2.mp4", 8.55, zoom=(1.0, 1.03), note="Milosz and Bilal trade under the wall sign")))
+    S(Shot(t, BEAT, clip("Milosz.Bilal.KB2.mp4", 8.55, zoom=(1.12, 1.15), center=(0.5, 0.42),
+                         note="Milosz and Bilal trade under the wall sign")))
     t = vb(V_KICK, 11)
-    hook = Hold(clip("Milosz.Bilal.KB2.mp4", 9.50, zoom=(1.16, 1.16), note="Bilal's hook freezes"), t, V_PAUSE)
+    hook = Hold(clip("Milosz.Bilal.KB2.mp4", 9.50, zoom=(1.2, 1.2), center=(0.5, 0.46), note="Bilal's hook freezes"),
+                t, V_PAUSE, push=0.08, centre=(0.5, 0.5))
     S(Shot(t, V_DROP + BURN / 2 - t, render=hook.picture, clips=[hook.clip]))
 
-    # 2 · the drop: the achievements, then the range
+    # 2 · the drop: the achievements, then the range on the mats
     t = V_DROP - BURN / 2
-    S(Shot(t, 2 * BEAT + BURN / 2, photo("Milosz.Celebration.jpg", center=(0.40, 0.42), exposure=0.1, drop=0.6, decode_zoom=1.2,
-                                         zfn=lambda lt: (ease_snap(lt, 0.10), 0.40, 0.42), note="Milosz, hand raised"),
-           trans=("burn", BURN)))
+    S(Shot(t, 2 * BEAT + BURN / 2, photo("Milosz.Celebration.jpg", center=(0.40, 0.42), exposure=0.12, sep_drop=0.5,
+                                         decode_zoom=1.2, zfn=lambda lt: (ease_snap(lt, 0.10), 0.40, 0.42),
+                                         note="Milosz, hand raised"), trans=("burn", BURN)))
     t = vb(V_DROP, 2)
-    S(Shot(t - WHIP / 2, 2 * BEAT + WHIP / 2, photo("Imre.Celebration.jpg", exposure=0.1, drop=0.6, decode_zoom=1.2,
+    S(Shot(t - WHIP / 2, 2 * BEAT + WHIP / 2, photo("Imre.Celebration.jpg", exposure=0.12, sep_drop=0.5, decode_zoom=1.2,
                                                     zfn=lambda lt: (ease_snap(lt, 0.08), 0.5, 0.36), note="Imre, arms up"),
            trans=("smear_up", WHIP)))
     t = vb(V_DROP, 4)
     dip = Diptych(w, h)
     S(Shot(t, 2 * BEAT, render=dip.render, clips=dip.clips))
     t = vb(V_DROP, 6)                                                    # the d'arce roll, slowed at the top
-    sp = ramp([(0.0, 1.0), (0.70, 0.45), (1.80, 1.0)])
-    S(Shot(t - WHIP / 2, vb(V_DROP, 10) - t + WHIP / 2, clip(
-        "Makhachev.D.arce.mp4", 19.30, speed=sp, zoom=(1.16, 1.08), center=(0.5, 0.5),
-        echo_fn=lambda lt: 0.3 * fx.smoothstep(0.7, 0.85, lt) * (1 - fx.smoothstep(1.7, 1.9, lt)), note="the d'arce roll"),
-        trans=("smear", WHIP)))
-    t = vb(V_DROP, 10)
-    S(Shot(t, 3 * BEAT, clip("arm.triangle.mp4", 4.30, zoom=(1.45, 1.62), center=(0.42, 0.56), note="the arm-triangle squeeze")))
-    t = vb(V_DROP, 13)
-    S(Shot(t, BEAT, clip("Milosz.Bilal.mp4", 36.67, zoom=(1.08, 1.12), note="Milosz trading, the room watching")))
+    sp = ramp([(0.0, 1.0), (0.70, 0.45)])
+    S(Shot(t - WHIP / 2, 3 * BEAT + WHIP / 2, clip(
+        "Makhachev.D.arce.mp4", 19.30, speed=sp, zoom=(1.16, 1.1), center=(0.5, 0.5),
+        echo_fn=lambda lt: 0.3 * fx.smoothstep(0.7, 0.85, lt), note="the d'arce roll"), trans=("smear", WHIP)))
+    t = vb(V_DROP, 9)
+    S(Shot(t, 3 * BEAT, clip("arm.triangle.mp4", 4.30, zoom=(1.45, 1.6), center=(0.42, 0.56), note="the arm-triangle squeeze")))
+    t = vb(V_DROP, 12)
+    S(Shot(t, 2 * BEAT, clip("50-50.mp4", 2.55, zoom=(1.1, 1.16), center=(0.55, 0.5), note="50-50")))
     t = vb(V_DROP, 14)
-    S(Shot(t, BEAT, clip("50-50.mp4", 1.45, zoom=(1.12, 1.16), center=(0.55, 0.45), note="50-50")))
-    t = vb(V_DROP, 15)
-    S(Shot(t, 2 * BEAT, clip("limited.gi.footage.mp4", 2.20, zoom=(1.2, 1.28), center=(0.45, 0.42), note="the gi: side control")))
+    S(Shot(t, 3 * BEAT, clip("limited.gi.footage.mp4", 1.9, zoom=(1.18, 1.26), center=(0.45, 0.45), note="the gi: side control")))
     t = vb(V_DROP, 17)
     S(Shot(t, V_BREAK + BURN / 2 - t, clip("armbar.mp4", 6.90, zoom=(1.12, 1.22), center=(0.5, 0.55),
                                            note="the sit-back into the armbar")))
 
-    # 3 · the people: coaching, laughing, promotions
+    # 3 · the people
     t = V_BREAK - BURN / 2
-    S(Shot(t, 3 * BEAT + BURN / 2, clip("uitleg.mma.mp4", 5.0 - BURN / 2 * 0.8, speed=0.8, zoom=(1.6, 1.72), center=(0.52, 0.33),
-                                        note="a coach on the mat with a pair"), trans=("burn", BURN)))
-    t = vb(V_BREAK, 3)
-    S(Shot(t, 2 * BEAT, clip("extra.mp4", 8.95, speed=0.7, zoom=(1.12, 1.2), center=(0.5, 0.45),
-                              note="a kid on the pads with his coach")))
-    t = vb(V_BREAK, 5)
-    S(Shot(t, 2 * BEAT, clip("Milosz.Bilal.KB2.mp4", 19.95, speed=0.8, zoom=(1.42, 1.48), center=(0.40, 0.36),
-                              note="Milosz laughing after a round")))
-    t = vb(V_BREAK, 7)
-    S(Shot(t, 3 * BEAT, clip("new/Graduatie.mp4", 0.30, speed=0.8, zoom=(1.62, 1.7), center=(0.55, 0.59),
+    sp = ramp([(0.0, 1.0), (0.45 + BURN / 2, 0.6)])
+    S(Shot(t, 4 * BEAT + BURN / 2, clip("Milosz.Bilal.KB2.mp4", 19.55 - BURN / 2, speed=sp, zoom=(1.66, 1.74),
+                                        track=[(0, 0.29, 0.34), (2.4, 0.37, 0.33)],
+                                        note="Milosz laughing after the round"), trans=("burn", BURN)))
+    t = vb(V_BREAK, 4)
+    S(Shot(t, 4 * BEAT, clip("uitleg.mma.mp4", 5.0, speed=0.8, zoom=(1.6, 1.72), center=(0.52, 0.33),
+                              note="a coach on the mat with a pair")))
+    t = vb(V_BREAK, 8)
+    S(Shot(t, 4 * BEAT, clip("new/Graduatie.mp4", 0.30, speed=0.8, zoom=(1.62, 1.7), center=(0.55, 0.59),
                               note="a new belt and a hug under the wall sign")))
-    t = vb(V_BREAK, 10)
-    S(Shot(t, 2 * BEAT, clip("new/Graduatie_2.mp4", 0.30, speed=0.85, zoom=(1.5, 1.56), center=(0.5, 0.57),
-                              note="a congratulation")))
-    # the 808: the purple-belt hug, slowed
     S(Shot(V_808, BAR, clip("new/WhatsApp_Video_2026-08-24_at_20.41.55.mp4", 6.95, speed=0.6, zoom=(1.55, 1.62),
                             center=(0.45, 0.48), note="the purple-belt hug, in slow motion")))
 
-    # 4 · the beat returns: the gi roll, a combination under the wall sign, the uppercut
-    S(Shot(V_RETURN, BEAT, clip("new/shark_tank.mp4", 27.25, zoom=(1.12, 1.16), center=(0.5, 0.52), note="the gi roll")))
-    for k, (s_hit, z, note) in enumerate([(12.16, 1.08, "a combination on the pads"), (15.04, 1.24, "…closer")]):
+    # 4 · the beat returns: the kids in gold gloves, a combination under the wall sign, the uppercut
+    S(Shot(V_RETURN, BEAT, clip("new/fill-in.mp4", 0.70, zoom=(1.04, 1.08), center=(0.55, 0.5), note="the kids sparring, gold gloves")))
+    for k, (s_hit, z, note) in enumerate([(15.04, 1.12, "a combination on the pads"), (18.07, 1.28, "…closer")]):
         S(Shot(vb(V_RETURN, 1 + k), BEAT, clip("wall.drill.near.the.end.mp4", s_hit - 0.03, zoom=(z, z * 1.02),
                                                center=(0.5, 0.46), note=note)))
     t = vb(V_RETURN, 3)
@@ -567,9 +770,10 @@ def build(w=1080, h=1920):
     S(Shot(t, V_TEAM + BURN / 2 - t, render=up.picture, clips=[up.clip]))
     flashes.append((V_CARD, 0.35, 0.18))
 
-    # 5 · the teams
-    teams = Teams(w, h)
-    S(Shot(V_TEAM - BURN / 2, DURATION - V_TEAM + BURN / 2, render=teams.render, clips=teams.clips, trans=("burn", BURN)))
+    # 5 · the finale
+    fin = Finale(w, h)
+    S(Shot(V_TEAM - BURN / 2, DURATION - V_TEAM + BURN / 2, render=fin.picture, clips=fin.clips, trans=("burn", BURN)))
+    tl.overlays.append(Overlay(U0, DURATION, fin.draw_type, "top"))
 
     def events(t, img, tl):
         for t0, k, d in flashes:
@@ -577,9 +781,20 @@ def build(w=1080, h=1920):
                 img = fx.flash(img, k * max(0.0, 1 - (t - t0) / d), tuple(CREAM))
         return img
     tl.overlays.insert(0, Overlay(0.0, DURATION, events, "pre"))
-    tl.cinema_at = lambda t: {"mono": 0.0, "streaks": 0.0, "halation": 0.4, "bloom": 0.3, "weave": 0.25}
-    tl.grain_at = lambda t: 0.6
-    tl.vignette_at = lambda t: 0.55
+
+    # the 4:5 window: on through the first chapter, closing to a slit in the silence; the drop
+    # bursts it open (the burn's white peak hides the snap)
+    def bars(t):
+        if t >= V_DROP:
+            return 0.0
+        a0 = V_PAUSE + 0.12
+        return 1.0 + 2.1 * fx.ease_in(fx.window(t, a0, V_DROP - 0.05)) ** 0.85
+    tl.bars = bars
+    tl.bar_ratio = 0.8
+    tl.cinema_at = lambda t: {"mono": 0.0, "streaks": 0.0, "halation": 0.35 if t < PB1 else 0.12, "bloom": 0.0,
+                              "weave": 0.25 if t < PB1 else 0.0}
+    tl.grain_at = lambda t: 0.55 if t < PB1 else 0.35
+    tl.vignette_at = lambda t: 0.35 if t < PB1 else 0.2
     tl.audio_plan = sounds()
     return tl
 
@@ -588,19 +803,19 @@ def build(w=1080, h=1920):
 def sounds():
     """Real sound from the floor: (video time, file, src t0, src t1, dB)."""
     combos = [(vb(V_RETURN, 1 + k), "wall.drill.near.the.end.mp4", s_hit - 0.03, s_hit + 0.45, -5)
-              for k, s_hit in enumerate([12.16, 15.04])]
+              for k, s_hit in enumerate([15.04, 18.07])]
     return [
-        (V_KICK - 0.03, "kickboxing.drills.mp4", 21.36, 21.75, -3),         # the kick lands
+        (V_KICK - 0.03, "kickboxing.drills.mp4", 21.36, 21.75, -1),         # the kick lands
         (vb(V_KICK, 4) - 0.03, "Dilbrien.x.Milosz.scramble.mp4", 1.06, 1.45, -6),   # the throw lands
         (vb(V_KICK, 4.5) + (14.40 - 14.02), "alternative.shot.mp4", 14.40, 14.98, -6),
         (vb(V_KICK, 7) + 0.03, "action.mp4", 3.98, 4.60, -6),               # the pads
         (vb(V_KICK, 7) + 1.42, "action.mp4", 5.15, 5.45, -7),               # the double-leg lands
         (V_PAUSE - 0.03, "Milosz.Bilal.KB2.mp4", 9.97, 10.45, -2),          # the hook the music stops on
         (vb(V_DROP, 6) + 0.62, "Makhachev.D.arce.mp4", 19.92, 20.30, -8),   # the roll
-        (vb(V_DROP, 13) + (36.90 - 36.67), "Milosz.Bilal.mp4", 36.90, 37.30, -7),
         (vb(V_DROP, 17) + (8.05 - 6.90), "armbar.mp4", 8.04, 8.40, -7),     # the sit-back
-        (vb(V_BREAK, 5), "Milosz.Bilal.KB2.mp4", 19.95, 20.75, -8),          # the laugh
+        (V_BREAK + 0.45, "Milosz.Bilal.KB2.mp4", 20.0, 20.9, -8),            # the laugh
         (V_808 + 0.1, "new/WhatsApp_Video_2026-08-24_at_20.41.55.mp4", 0.4, 2.4, -10),   # the room cheering
+        (V_RETURN, "new/fill-in.mp4", 0.70, 1.20, -9),
     ] + combos + [
         (V_CARD - 0.03, "wall.drill.near.the.end.mp4", 8.95, 9.40, -2),      # the uppercut
     ]
@@ -622,9 +837,20 @@ def _verb(x, ir):
     return np.stack([signal.fftconvolve(x[:, c], ir[:, c]) for c in range(2)], 1).astype(np.float32)
 
 
+def _impact(sr, dur=2.2):
+    """One clean, deep landing: a sub that drops 58 → 34 Hz under a soft felt transient."""
+    from scipy import signal
+    t = np.arange(int(dur * sr)) / sr
+    f = 34 + 24 * np.exp(-t / 0.18)
+    sub = np.sin(2 * np.pi * np.cumsum(f) / sr) * np.exp(-t / 0.55)
+    rng = np.random.default_rng(3)
+    click = signal.lfilter(*signal.butter(2, 900 / (sr / 2)), rng.standard_normal(len(t))) * np.exp(-t / 0.012) * 0.3
+    return ((sub * 0.9 + click)[:, None].repeat(2, 1)).astype(np.float32)
+
+
 def mix(plan, sr=48000, music=True):
-    """The mix. music=False: the floor sounds alone (with the hall tails), for laying a licensed
-    track under it in an ad."""
+    """The mix. music=False: the floor sounds alone (with the hall tails and the impacts), for
+    laying a licensed track under it in an ad."""
     from scipy import signal
     n = int(round(DURATION * sr))
     out = np.zeros((n, 2), np.float32)
@@ -674,6 +900,12 @@ def mix(plan, sr=48000, music=True):
         if name == "wall.drill.near.the.end.mp4" and abs(v - (V_CARD - 0.03)) < 1e-6:
             wet = _verb(a, _hall(sr, 2.4))[:n - i] * 0.45                  # the uppercut rings out
             out[i:i + len(wet)] += wet
+    # two clean low impacts: under the kick, and as the banner snaps open
+    for at, g in ((V_KICK, 0.28), (U0 + 0.3, 0.36)):
+        imp = _impact(sr) * g
+        j = int(round(at * sr))
+        m = min(len(imp), n - j)
+        out[j:j + m] += imp[:m]
     k = int(0.03 * sr)
     out[-k:] *= np.linspace(1, 0, k)[:, None]
     peak = np.abs(out).max()
