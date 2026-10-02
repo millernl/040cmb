@@ -1,56 +1,56 @@
 # 040COMBAT — Deurne showcase
 
-A 33-second 9:16 showcase for 040COMBAT, the MMA, kickboxing and grappling gym in
+A 34-second 9:16 invitation to 040COMBAT, the MMA, kickboxing and grappling gym in
 Deurne. It is cut from the gym's own training footage and competition photos only.
 
 ## The edit (`edits/showcase.py`)
 
+Not a fight trailer: an invitation. The skill and the range come first, then the people:
+coaching, laughing, promotions, the hug. It ends on the two team photos under the wall sign.
+The mission is "I want to be a part of this": competence, confidence, community.
+
 Cut to Future & Metro Boomin's *Everyday Hustle* (`music/`, not in git). The track runs at
-119.67 BPM, so a bar is 2.006 s; the grid is fitted on its kick pattern. Every splice is on
-a bar line.
+119.67 BPM, so a bar is 2.006 s. Every splice is on a bar line.
 
 | time | music | picture |
 |---|---|---|
-| 0–3 | out of silence (bars 6½–7) | out of black, the light strikes behind Milosz and his partner: flickering silhouettes, rimmed where the light wraps them · on the bar line the light lands · three punch-ins on the eighth notes |
-| 3–9 | the vocals (bars 8–10) | the kick lands on the first vocal downbeat in slow motion, trailing light · a whip into a throw, slowed at the top and landing on the beat · her combination · pads into a double-leg · an exchange under the wall logo |
-| 9–10 | silence; the intro rings out in a hall | Bilal's hook freezes · the gym drains to black and earlier instants of the punch appear one by one, a stroboscopic multiple exposure · the last frames print them white |
-| 10–20 | the drop (bars 32–36) | Milosz's hand raised · a whip up to Imre · the two slam together · the d'arce roll, slowed at the top · the arm-triangle squeeze · Milosz trading · 50-50 · the gi · the sit-back into the armbar |
-| 20–24 | the breakdown (bars 52–53) | a coach on the mat with a pair · a kid on the pads with his coach |
-| 24–26 | bar 59, an 808 and air | the team photo: a band of light sweeps across the room and finds every face · the wall sign surfaces above them |
-| 26–28 | the beat returns (bar 60) | a combination under the wall sign, punched in closer · the uppercut |
-| 28–33 | the song's drumless outro (bar 106) | the uppercut freezes; the room drains, the two of them fade to black · over the empty gym, barely there, the badge builds itself: the gold ring drawn by a line of light, the banner snapping open on the beat with one low impact, COMBAT rising, 040, the stars on the eighth notes, a glint, DEURNE |
+| 0–3 | out of silence (bars 6½–7) | out of black, the light comes on behind Milosz and his partner · it lands on the bar line · three punch-ins on the eighth notes |
+| 3–9 | the vocals (bars 8–10) | the kick lands on the first vocal downbeat in slow motion · the throw · her combination · pads into a double-leg · an exchange under the wall sign |
+| 9–10 | silence | Bilal's hook freezes, the room falls away around them |
+| 10–20 | the drop (bars 32–36) | burn to white → Milosz's hand raised · Imre · the two together · the d'arce roll · the arm-triangle · Milosz trading · 50-50 · the gi · the armbar |
+| 20–26 | the breakdown (bars 52–54) | burn to white → a coach on the mat with a pair · a kid on the pads with his coach · Milosz laughing after a round · a new belt and a hug under the wall sign · a congratulation |
+| 26–28 | bar 59, an 808 and air | the purple-belt hug in slow motion, the room cheering |
+| 28–30 | the beat returns (bar 60) | the gi roll · a combination under the wall sign · the uppercut |
+| 30–34 | the song's drumless outro (bar 106) | the uppercut holds · burn to white → the two teams, no-gi above and gi below, both under the wall sign · fade to black |
 
-Real sound from the floor cuts through the music: the kick, the throw landing, her
-punches, the pads and the double-leg, Bilal's hook, the photos slamming together, the
-d'arce roll, the armbar sit-back, the last combination, and the uppercut ringing out in a hall.
+Real sound from the floor sits under the music: the kick, the throw landing, her punches,
+the pads and the double-leg, Bilal's hook, the d'arce roll, the armbar, the laugh, the room
+cheering at the promotion, the last combination, and the uppercut ringing out in a hall.
 
-**Look: a relit black & white.** Every shot carries a people matte (Robust Video Matting,
-`afterfilm/matte.py`). The grade uses it like a lighting pass:
-- the room drops by up to about 1.8 stops behind the athletes, the bright walls and windows most;
-- the athletes lift a touch and take local contrast (muscle, sweat, fabric);
-- the ceiling darkens.
+**Look: one warm, low-key colour grade.** It is calibrated on the Arma BJJ reference
+(`footage/new/arma_bjj.mp4`), measured tone by tone:
+- shadows are brown-black;
+- an amber cast runs through the midtones;
+- highlights are cream;
+- saturation falls off toward the highlights.
 
-The image then prints through a filmic curve with graphite shadows and off-white paper
-highlights. Each shot is first matched for black point, white point and exposure, so phone
-footage from different rooms prints the same. Gold appears only as light: the gilded
-competition photos and the exposure flashes on the big hits. Its one solid use is in the badge.
+Each shot is first white-balanced and matched for black point, white point and exposure, so
+footage from different phones and rooms prints the same. Skin, gold and amber keep their
+colour; cool colours are muted, not erased.
 
-**The badge** (`edits/logo040.py`) is rebuilt as vector paths from the supplied logo, which
-is not in git:
-- the octagons are fitted as straight-edged polygons;
-- the banner is measured;
-- the letterforms are traced, and the stars rebuilt as true five-point stars.
+A people matte (Robust Video Matting, `afterfilm/matte.py`) lets the room sit lower than the
+athletes. A warm halation, bloom, fine grain and a soft vignette finish the image. The weights
+are GPL-3.0 and live in `work/models/`, not in git.
 
-Every part animates on its own and stays crisp at any size. The ring and banner frame use a
-metallic gold gradient, the rim a dark silver.
-
-**Mattes.** The RVM weights (GPL-3.0) are downloaded to `work/models/` and are not in git;
-the mattes are cached in `work/mattes/`. For the 30-person team photo, which the video model
-can't separate, the matte is the team block, feathered.
+**Transitions.** As in the reference, chapters change through a short burn to warm white;
+everything else is a cut, plus two whips. There are no strobes, negative frames or graphics.
 
 **Ads.** The song is not cleared for paid use. Every render also writes `*_no-music.mp4`:
-the same picture with only the floor sounds, the hall tails and the logo impact, ready for a
-licensed track at around 120 BPM.
+the same picture with only the floor sounds and hall tails, ready for a licensed track at
+around 120 BPM.
+
+`edits/logo040.py` rebuilds the badge as vector paths. The v5 outro used it; this cut ends on
+the real sign on the wall instead.
 
 ```bash
 python edits/showcase.py                                  # renders/040COMBAT_showcase_9x16.mp4 (+ .wav)
